@@ -101,17 +101,19 @@ public class AuthController {
         String email = body.get("email");
         Optional<User> userOpt = userRepository.findByEmail(email);
 
-        // Always return success to prevent email enumeration
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            String resetToken = UUID.randomUUID().toString();
-            user.setResetToken(resetToken);
-            user.setResetTokenExpiry(System.currentTimeMillis() + RESET_TOKEN_TTL);
-            userRepository.save(user);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Aucun compte trouvé avec cet email"));
         }
 
+        User user = userOpt.get();
+        String resetToken = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(System.currentTimeMillis() + RESET_TOKEN_TTL);
+        userRepository.save(user);
+
         return ResponseEntity.ok(Map.of(
-            "message", "Si cet email existe, un code de réinitialisation a été généré."
+            "message", "Code de réinitialisation généré",
+            "resetCode", resetToken
         ));
     }
 
