@@ -17,7 +17,8 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        jdbcTemplate.execute("""
+        try {
+            jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id BIGSERIAL PRIMARY KEY,
                 email VARCHAR(255) NOT NULL UNIQUE,
@@ -45,5 +46,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         // Add columns if they don't exist (for existing tables)
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"); } catch (Exception ignored) {}
+        } catch (Exception e) {
+            System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
+        }
     }
 }
