@@ -4,12 +4,15 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 @RestController
 @RequestMapping("/api/contact")
@@ -37,14 +40,15 @@ public class ContactController {
         }
 
         try {
-            SimpleMailMessage mail = new SimpleMailMessage();
-            mail.setFrom(fromEmail);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper mail = new MimeMessageHelper(mimeMessage, "UTF-8");
+            mail.setFrom(new InternetAddress(fromEmail, "PrimeSpace Studio"));
             mail.setTo(recipientEmail);
             mail.setReplyTo(request.email);
             mail.setSubject("Nouvelle demande de devis - " + request.name);
             mail.setText(buildEmailBody(request));
 
-            mailSender.send(mail);
+            mailSender.send(mimeMessage);
 
             return ResponseEntity.ok(Map.of("message", "Message envoyé avec succès"));
         } catch (Exception e) {
