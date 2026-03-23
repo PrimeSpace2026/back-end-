@@ -1,34 +1,29 @@
 package primespace.demo.controller;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-
 @RestController
 @RequestMapping("/api/contact")
 public class ContactController {
 
-    private final JavaMailSender mailSender;
+    @Value("${resend.api-key:}")
+    private String resendApiKey;
 
     @Value("${contact.recipient:info@primespace.studio}")
     private String recipientEmail;
 
-    @Value("${spring.mail.username:}")
-    private String fromEmail;
-
-    public ContactController(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @PostMapping
     public ResponseEntity<Map<String, String>> handleContact(@RequestBody ContactRequest request) {
@@ -40,20 +35,43 @@ public class ContactController {
         }
 
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper mail = new MimeMessageHelper(mimeMessage, "UTF-8");
-            mail.setFrom(new InternetAddress(fromEmail, "PrimeSpace Studio"));
-            mail.setTo(recipientEmail);
-            mail.setReplyTo(request.email);
-            mail.setSubject("Nouvelle demande de devis - " + request.name);
-            mail.setText(buildEmailBody(request));
+            String emailBody = buildEmailBody(request);
+            String subject = "Nouvelle demande de devis - " + request.name;
 
-            mailSender.send(mimeMessage);
+            String json = String.format(
+                "{\"from\":\"%s via PrimeSpace <contact@primespace.studio>\","
+                + "\"to\":[\"%s\"],"
+                + "\"reply_to\":\"%s\","
+                + "\"subject\":\"%s\","
+                + "\"text\":\"%s\"}",
+                escapeJson(request.name),
+                escapeJson(recipientEmail),
+                escapeJson(request.email),
+                escapeJson(subject),
+                escapeJson(emailBody)
+            );
 
-            return ResponseEntity.ok(Map.of("message", "Message envoyé avec succès"));
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                return ResponseEntity.ok(Map.of("message", "Message envoyé avec succès"));
+            } else {
+                return ResponseEntity.status(500).body(Map.of("error", "Erreur lors de l'envoi: " + response.body()));
+            }
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Erreur lors de l'envoi: " + e.getMessage()));
         }
+    }
+
+    private String escapeJson(String s) {
+        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
     }
 
     private String buildEmailBody(ContactRequest r) {
