@@ -32,6 +32,8 @@ public class Tour {
 
     private Double longitude;
 
+    private String location;
+
     public Tour() {
     }
 
@@ -114,5 +116,13 @@ public class Tour {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

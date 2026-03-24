@@ -52,6 +52,9 @@ public class TourController {
                     tour.setImageUrl(tourDetails.getImageUrl());
                     tour.setSurface(tourDetails.getSurface());
                     tour.setTourUrl(tourDetails.getTourUrl());
+                    tour.setLatitude(tourDetails.getLatitude());
+                    tour.setLongitude(tourDetails.getLongitude());
+                    tour.setLocation(tourDetails.getLocation());
                     return ResponseEntity.ok(tourRepository.save(tour));
                 })
                 .orElse(ResponseEntity.notFound().build());

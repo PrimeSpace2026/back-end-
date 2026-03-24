@@ -39,13 +39,15 @@ public class DatabaseInitializer implements CommandLineRunner {
                 surface DOUBLE PRECISION,
                 tour_url VARCHAR(255),
                 latitude DOUBLE PRECISION,
-                longitude DOUBLE PRECISION
+                longitude DOUBLE PRECISION,
+                location VARCHAR(255)
             )
         """);
 
         // Add columns if they don't exist (for existing tables)
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS location VARCHAR(255)"); } catch (Exception ignored) {}
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }
