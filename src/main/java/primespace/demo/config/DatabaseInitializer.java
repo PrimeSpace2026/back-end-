@@ -48,6 +48,22 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS location VARCHAR(255)"); } catch (Exception ignored) {}
+
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS tour_item (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                name VARCHAR(255),
+                description VARCHAR(1000),
+                image_url VARCHAR(500),
+                price DOUBLE PRECISION,
+                currency VARCHAR(10) DEFAULT 'EUR',
+                external_url VARCHAR(500),
+                brand VARCHAR(255),
+                tag_sid VARCHAR(255)
+            )
+        """);
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }
