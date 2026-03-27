@@ -68,6 +68,15 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN image_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN external_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
 
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS tour_tag (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                name VARCHAR(255),
+                sid VARCHAR(255)
+            )
+        """);
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }
