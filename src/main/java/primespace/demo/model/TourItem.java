@@ -22,12 +22,14 @@ public class TourItem {
     @Column(length = 1000)
     private String description;
 
+    @Column(length = 2000)
     private String imageUrl;
 
     private Double price;
 
     private String currency;
 
+    @Column(length = 2000)
     private String externalUrl;
 
     private String brand;

@@ -55,14 +55,18 @@ public class DatabaseInitializer implements CommandLineRunner {
                 tour_id BIGINT NOT NULL,
                 name VARCHAR(255),
                 description VARCHAR(1000),
-                image_url VARCHAR(500),
+                image_url VARCHAR(2000),
                 price DOUBLE PRECISION,
                 currency VARCHAR(10) DEFAULT 'EUR',
-                external_url VARCHAR(500),
+                external_url VARCHAR(2000),
                 brand VARCHAR(255),
                 tag_sid VARCHAR(255)
             )
         """);
+
+        // Widen URL columns if table already existed with smaller limits
+        try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN image_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN external_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
 
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
