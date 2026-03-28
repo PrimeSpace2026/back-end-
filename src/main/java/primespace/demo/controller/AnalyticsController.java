@@ -31,6 +31,8 @@ public class AnalyticsController {
         visit.setBrowser((String) body.getOrDefault("browser", ""));
         visit.setCountry((String) body.getOrDefault("country", ""));
         visit.setCity((String) body.getOrDefault("city", ""));
+        if (body.get("latitude") != null) visit.setLatitude(((Number) body.get("latitude")).doubleValue());
+        if (body.get("longitude") != null) visit.setLongitude(((Number) body.get("longitude")).doubleValue());
         visit.setStartedAt(Instant.now());
         return ResponseEntity.ok(visitRepo.save(visit));
     }
@@ -100,6 +102,8 @@ public class AnalyticsController {
             vMap.put("browser", v.getBrowser());
             vMap.put("country", v.getCountry());
             vMap.put("city", v.getCity());
+            vMap.put("latitude", v.getLatitude());
+            vMap.put("longitude", v.getLongitude());
             visitsList.add(vMap);
         }
         stats.put("recentVisits", visitsList);
@@ -140,6 +144,37 @@ public class AnalyticsController {
                 locationList.add(m);
             });
         stats.put("locations", locationList);
+
+        // Map points for geographic heatmap
+        List<Map<String, Object>> mapPoints = new ArrayList<>();
+        Map<String, double[]> coordMap = new LinkedHashMap<>();
+        Map<String, Integer> coordCounts = new LinkedHashMap<>();
+        for (TourVisit v : recentVisits) {
+            if (v.getLatitude() != null && v.getLongitude() != null) {
+                String key = String.format("%.2f,%.2f", v.getLatitude(), v.getLongitude());
+                coordMap.putIfAbsent(key, new double[]{v.getLatitude(), v.getLongitude()});
+                coordCounts.merge(key, 1, Integer::sum);
+            }
+        }
+        coordCounts.forEach((key, count) -> {
+            double[] coords = coordMap.get(key);
+            Map<String, Object> pt = new HashMap<>();
+            pt.put("lat", coords[0]);
+            pt.put("lng", coords[1]);
+            pt.put("count", count);
+            String loc = "";
+            for (TourVisit v : recentVisits) {
+                if (v.getLatitude() != null && v.getLongitude() != null &&
+                    String.format("%.2f,%.2f", v.getLatitude(), v.getLongitude()).equals(key)) {
+                    if (v.getCity() != null && !v.getCity().isEmpty()) loc = v.getCity();
+                    if (v.getCountry() != null && !v.getCountry().isEmpty()) loc += (loc.isEmpty() ? "" : ", ") + v.getCountry();
+                    break;
+                }
+            }
+            pt.put("name", loc.isEmpty() ? "Inconnu" : loc);
+            mapPoints.add(pt);
+        });
+        stats.put("mapPoints", mapPoints);
 
         return ResponseEntity.ok(stats);
     }
