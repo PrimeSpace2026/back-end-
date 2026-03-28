@@ -77,6 +77,28 @@ public class DatabaseInitializer implements CommandLineRunner {
             )
         """);
 
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS tour_visit (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                visitor_id VARCHAR(255),
+                started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                duration_seconds INTEGER
+            )
+        """);
+
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS tour_event (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                visitor_id VARCHAR(255),
+                event_type VARCHAR(50),
+                target_name VARCHAR(255),
+                target_id VARCHAR(255),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """);
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }
