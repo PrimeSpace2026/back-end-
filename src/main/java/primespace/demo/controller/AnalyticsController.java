@@ -32,8 +32,8 @@ public class AnalyticsController {
         return ResponseEntity.ok(visitRepo.save(visit));
     }
 
-    // --- Update visit duration ---
-    @PutMapping("/visit/{id}")
+    // --- Update visit duration (POST for sendBeacon compatibility, PUT also accepted) ---
+    @RequestMapping(value = "/visit/{id}", method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<TourVisit> updateVisitDuration(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         return visitRepo.findById(id).map(visit -> {
             visit.setDurationSeconds(((Number) body.get("durationSeconds")).intValue());
