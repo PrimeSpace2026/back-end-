@@ -28,6 +28,9 @@ public class AnalyticsController {
         TourVisit visit = new TourVisit();
         visit.setTourId(((Number) body.get("tourId")).longValue());
         visit.setVisitorId((String) body.getOrDefault("visitorId", "anonymous"));
+        visit.setBrowser((String) body.getOrDefault("browser", ""));
+        visit.setCountry((String) body.getOrDefault("country", ""));
+        visit.setCity((String) body.getOrDefault("city", ""));
         visit.setStartedAt(Instant.now());
         return ResponseEntity.ok(visitRepo.save(visit));
     }
@@ -94,9 +97,49 @@ public class AnalyticsController {
             vMap.put("visitorId", v.getVisitorId());
             vMap.put("startedAt", v.getStartedAt());
             vMap.put("durationSeconds", v.getDurationSeconds());
+            vMap.put("browser", v.getBrowser());
+            vMap.put("country", v.getCountry());
+            vMap.put("city", v.getCity());
             visitsList.add(vMap);
         }
         stats.put("recentVisits", visitsList);
+
+        // Browser breakdown
+        Map<String, Integer> browserCounts = new LinkedHashMap<>();
+        for (TourVisit v : recentVisits) {
+            String b = v.getBrowser() != null && !v.getBrowser().isEmpty() ? v.getBrowser() : "Inconnu";
+            browserCounts.merge(b, 1, Integer::sum);
+        }
+        List<Map<String, Object>> browserList = new ArrayList<>();
+        browserCounts.entrySet().stream()
+            .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+            .forEach(e -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("name", e.getKey());
+                m.put("count", e.getValue());
+                browserList.add(m);
+            });
+        stats.put("browsers", browserList);
+
+        // Location breakdown
+        Map<String, Integer> locationCounts = new LinkedHashMap<>();
+        for (TourVisit v : recentVisits) {
+            String loc = "";
+            if (v.getCity() != null && !v.getCity().isEmpty()) loc = v.getCity();
+            if (v.getCountry() != null && !v.getCountry().isEmpty()) loc += (loc.isEmpty() ? "" : ", ") + v.getCountry();
+            if (loc.isEmpty()) loc = "Inconnu";
+            locationCounts.merge(loc, 1, Integer::sum);
+        }
+        List<Map<String, Object>> locationList = new ArrayList<>();
+        locationCounts.entrySet().stream()
+            .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+            .forEach(e -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("name", e.getKey());
+                m.put("count", e.getValue());
+                locationList.add(m);
+            });
+        stats.put("locations", locationList);
 
         return ResponseEntity.ok(stats);
     }

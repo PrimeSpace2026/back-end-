@@ -99,6 +99,11 @@ public class DatabaseInitializer implements CommandLineRunner {
             )
         """);
 
+        // Add browser/location columns to tour_visit
+        try { jdbcTemplate.execute("ALTER TABLE tour_visit ADD COLUMN IF NOT EXISTS browser VARCHAR(255)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour_visit ADD COLUMN IF NOT EXISTS country VARCHAR(255)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour_visit ADD COLUMN IF NOT EXISTS city VARCHAR(255)"); } catch (Exception ignored) {}
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }

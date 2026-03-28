@@ -23,6 +23,15 @@ public class TourVisit {
     @Column(name = "duration_seconds")
     private Integer durationSeconds;
 
+    @Column(name = "browser")
+    private String browser;
+
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "city")
+    private String city;
+
     public TourVisit() {}
 
     public Long getId() { return id; }
@@ -35,4 +44,10 @@ public class TourVisit {
     public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
     public Integer getDurationSeconds() { return durationSeconds; }
     public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
+    public String getBrowser() { return browser; }
+    public void setBrowser(String browser) { this.browser = browser; }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
 }
