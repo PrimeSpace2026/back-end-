@@ -49,6 +49,7 @@ public class TourItemController {
                     item.setExternalUrl(details.getExternalUrl());
                     item.setBrand(details.getBrand());
                     item.setTagSid(details.getTagSid());
+                    item.setCoordinates(details.getCoordinates());
                     return ResponseEntity.ok(tourItemRepository.save(item));
                 })
                 .orElse(ResponseEntity.notFound().build());

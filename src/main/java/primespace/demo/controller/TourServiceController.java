@@ -50,6 +50,7 @@ public class TourServiceController {
                     svc.setInstagram(details.getInstagram());
                     svc.setFacebook(details.getFacebook());
                     svc.setTagSid(details.getTagSid());
+                    svc.setCoordinates(details.getCoordinates());
                     return ResponseEntity.ok(tourServiceRepository.save(svc));
                 })
                 .orElse(ResponseEntity.notFound().build());
