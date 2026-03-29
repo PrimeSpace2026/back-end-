@@ -37,6 +37,9 @@ public class TourService {
 
     private String tagSid;
 
+    @Column(length = 100)
+    private String coordinates;
+
     public TourService() {
     }
 
@@ -82,4 +85,7 @@ public class TourService {
 
     public String getTagSid() { return tagSid; }
     public void setTagSid(String tagSid) { this.tagSid = tagSid; }
+
+    public String getCoordinates() { return coordinates; }
+    public void setCoordinates(String coordinates) { this.coordinates = coordinates; }
 }
