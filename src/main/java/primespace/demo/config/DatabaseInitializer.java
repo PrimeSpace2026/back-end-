@@ -99,6 +99,21 @@ public class DatabaseInitializer implements CommandLineRunner {
             )
         """);
 
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS tour_service (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                name VARCHAR(255),
+                description VARCHAR(1000),
+                image_url VARCHAR(2000),
+                phone VARCHAR(255),
+                whatsapp VARCHAR(255),
+                instagram VARCHAR(500),
+                facebook VARCHAR(500),
+                tag_sid VARCHAR(255)
+            )
+        """);
+
         // Add browser/location columns to tour_visit
         try { jdbcTemplate.execute("ALTER TABLE tour_visit ADD COLUMN IF NOT EXISTS browser VARCHAR(255)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour_visit ADD COLUMN IF NOT EXISTS country VARCHAR(255)"); } catch (Exception ignored) {}
