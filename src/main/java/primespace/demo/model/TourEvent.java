@@ -25,10 +25,13 @@ public class TourEvent {
     private String visitorId;
 
     @Column(name = "event_type")
-    private String eventType; // "tag_click", "product_click", "add_to_cart"
+    private String eventType; // "tag_click", "product_click", "service_click", "add_to_cart"
+
+    @Column(name = "event_tag")
+    private String eventTag; // Matterport tag SID that was clicked
 
     @Column(name = "target_name")
-    private String targetName; // product name or tag name
+    private String targetName; // product name, service name, or tag name
 
     @Column(name = "target_id")
     private String targetId; // product id or tag SID
@@ -48,6 +51,8 @@ public class TourEvent {
     public void setVisitorId(String visitorId) { this.visitorId = visitorId; }
     public String getEventType() { return eventType; }
     public void setEventType(String eventType) { this.eventType = eventType; }
+    public String getEventTag() { return eventTag; }
+    public void setEventTag(String eventTag) { this.eventTag = eventTag; }
     public String getTargetName() { return targetName; }
     public void setTargetName(String targetName) { this.targetName = targetName; }
     public String getTargetId() { return targetId; }

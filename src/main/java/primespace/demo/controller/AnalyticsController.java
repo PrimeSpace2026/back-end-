@@ -63,6 +63,7 @@ public class AnalyticsController {
         event.setTourId(((Number) body.get("tourId")).longValue());
         event.setVisitorId((String) body.getOrDefault("visitorId", "anonymous"));
         event.setEventType((String) body.get("eventType"));
+        event.setEventTag((String) body.getOrDefault("eventTag", ""));
         event.setTargetName((String) body.getOrDefault("targetName", ""));
         event.setTargetId((String) body.getOrDefault("targetId", ""));
         event.setCreatedAt(Instant.now());
