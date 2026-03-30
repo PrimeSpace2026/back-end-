@@ -85,6 +85,7 @@ public class AnalyticsController {
         // Global event counts
         stats.put("tagClicks", eventRepo.countByEventType("tag_click"));
         stats.put("productClicks", eventRepo.countByEventType("product_click"));
+        stats.put("serviceClicks", eventRepo.countByEventType("service_click"));
         stats.put("addToCart", eventRepo.countByEventType("add_to_cart"));
 
         // Most clicked product (global)
@@ -109,6 +110,17 @@ public class AnalyticsController {
             stats.put("mostClickedTag", null);
         }
 
+        // Most clicked service (global)
+        List<Object[]> topServices = eventRepo.countByTargetGroupedGlobal("service_click");
+        if (!topServices.isEmpty()) {
+            Map<String, Object> top = new HashMap<>();
+            top.put("name", topServices.get(0)[0]);
+            top.put("clicks", topServices.get(0)[1]);
+            stats.put("mostClickedService", top);
+        } else {
+            stats.put("mostClickedService", null);
+        }
+
         // Product interaction heatmap (global)
         List<Map<String, Object>> productHeatmap = new ArrayList<>();
         for (Object[] row : topProducts) {
@@ -129,6 +141,16 @@ public class AnalyticsController {
         }
         stats.put("tagHeatmap", tagHeatmap);
 
+        // Service interaction heatmap (global)
+        List<Map<String, Object>> serviceHeatmap = new ArrayList<>();
+        for (Object[] row : topServices) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("name", row[0]);
+            entry.put("clicks", row[1]);
+            serviceHeatmap.add(entry);
+        }
+        stats.put("serviceHeatmap", serviceHeatmap);
+
         // Per-tour breakdown (sorted by visits desc)
         Map<Long, String> tourNames = new HashMap<>();
         for (Tour t : tourRepo.findAll()) {
@@ -147,6 +169,7 @@ public class AnalyticsController {
             entry.put("avgDuration", visitRepo.avgDurationByTourId(tourId));
             entry.put("tagClicks", eventRepo.countByTourIdAndEventType(tourId, "tag_click"));
             entry.put("productClicks", eventRepo.countByTourIdAndEventType(tourId, "product_click"));
+            entry.put("serviceClicks", eventRepo.countByTourIdAndEventType(tourId, "service_click"));
             entry.put("addToCart", eventRepo.countByTourIdAndEventType(tourId, "add_to_cart"));
             tourBreakdown.add(entry);
         }
@@ -161,6 +184,7 @@ public class AnalyticsController {
                 entry.put("avgDuration", null);
                 entry.put("tagClicks", 0L);
                 entry.put("productClicks", 0L);
+                entry.put("serviceClicks", 0L);
                 entry.put("addToCart", 0L);
                 tourBreakdown.add(entry);
             }
@@ -315,9 +339,10 @@ public class AnalyticsController {
         stats.put("avgDuration", visitRepo.avgDurationByTourId(tourId));
         stats.put("tagClicks", eventRepo.countByTourIdAndEventType(tourId, "tag_click"));
         stats.put("productClicks", eventRepo.countByTourIdAndEventType(tourId, "product_click"));
+        stats.put("serviceClicks", eventRepo.countByTourIdAndEventType(tourId, "service_click"));
         stats.put("addToCart", eventRepo.countByTourIdAndEventType(tourId, "add_to_cart"));
 
-        // Heatmap: clicks per product/tag
+        // Heatmap: clicks per product/tag/service
         List<Object[]> tagHeat = eventRepo.countByTargetGrouped(tourId, "tag_click");
         List<Map<String, Object>> heatmap = new ArrayList<>();
         for (Object[] row : tagHeat) {
@@ -337,6 +362,16 @@ public class AnalyticsController {
             productHeatmap.add(entry);
         }
         stats.put("productHeatmap", productHeatmap);
+
+        List<Object[]> serviceHeat = eventRepo.countByTargetGrouped(tourId, "service_click");
+        List<Map<String, Object>> serviceHeatmap = new ArrayList<>();
+        for (Object[] row : serviceHeat) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("name", row[0]);
+            entry.put("clicks", row[1]);
+            serviceHeatmap.add(entry);
+        }
+        stats.put("serviceHeatmap", serviceHeatmap);
 
         // Recent visits with duration
         List<TourVisit> recentVisits = visitRepo.findByTourIdOrderByStartedAtDesc(tourId);
