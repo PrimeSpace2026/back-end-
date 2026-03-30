@@ -18,6 +18,11 @@ public class HealthController {
         this.dataSource = dataSource;
     }
 
+    @GetMapping("/api/wake")
+    public ResponseEntity<Map<String, String>> wake() {
+        return ResponseEntity.ok(Map.of("status", "awake"));
+    }
+
     @GetMapping("/api/health")
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "ok"));
