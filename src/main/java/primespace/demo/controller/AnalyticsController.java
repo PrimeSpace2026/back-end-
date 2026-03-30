@@ -86,6 +86,7 @@ public class AnalyticsController {
         stats.put("tagClicks", eventRepo.countByEventType("tag_click"));
         stats.put("productClicks", eventRepo.countByEventType("product_click"));
         stats.put("serviceClicks", eventRepo.countByEventType("service_click"));
+        stats.put("serviceVisitors", eventRepo.countUniqueVisitorsByEventType("service_click"));
         stats.put("addToCart", eventRepo.countByEventType("add_to_cart"));
 
         // Most clicked product (global)
@@ -170,6 +171,7 @@ public class AnalyticsController {
             entry.put("tagClicks", eventRepo.countByTourIdAndEventType(tourId, "tag_click"));
             entry.put("productClicks", eventRepo.countByTourIdAndEventType(tourId, "product_click"));
             entry.put("serviceClicks", eventRepo.countByTourIdAndEventType(tourId, "service_click"));
+            entry.put("serviceVisitors", eventRepo.countUniqueVisitorsByTourIdAndEventType(tourId, "service_click"));
             entry.put("addToCart", eventRepo.countByTourIdAndEventType(tourId, "add_to_cart"));
             tourBreakdown.add(entry);
         }
@@ -185,6 +187,7 @@ public class AnalyticsController {
                 entry.put("tagClicks", 0L);
                 entry.put("productClicks", 0L);
                 entry.put("serviceClicks", 0L);
+                entry.put("serviceVisitors", 0L);
                 entry.put("addToCart", 0L);
                 tourBreakdown.add(entry);
             }
@@ -340,6 +343,7 @@ public class AnalyticsController {
         stats.put("tagClicks", eventRepo.countByTourIdAndEventType(tourId, "tag_click"));
         stats.put("productClicks", eventRepo.countByTourIdAndEventType(tourId, "product_click"));
         stats.put("serviceClicks", eventRepo.countByTourIdAndEventType(tourId, "service_click"));
+        stats.put("serviceVisitors", eventRepo.countUniqueVisitorsByTourIdAndEventType(tourId, "service_click"));
         stats.put("addToCart", eventRepo.countByTourIdAndEventType(tourId, "add_to_cart"));
 
         // Heatmap: clicks per product/tag/service

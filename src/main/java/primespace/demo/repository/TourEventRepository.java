@@ -20,4 +20,10 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
     @Query("SELECT e.tourId, COUNT(e) FROM TourEvent e WHERE e.eventType = :eventType GROUP BY e.tourId ORDER BY COUNT(e) DESC")
     List<Object[]> countByTourGrouped(String eventType);
+
+    @Query("SELECT COUNT(DISTINCT e.visitorId) FROM TourEvent e WHERE e.tourId = :tourId AND e.eventType = :eventType")
+    long countUniqueVisitorsByTourIdAndEventType(Long tourId, String eventType);
+
+    @Query("SELECT COUNT(DISTINCT e.visitorId) FROM TourEvent e WHERE e.eventType = :eventType")
+    long countUniqueVisitorsByEventType(String eventType);
 }
