@@ -167,30 +167,13 @@ public class AnalyticsController {
         }
         stats.put("tourBreakdown", tourBreakdown);
 
-        // Tags per tour (service tags from tour_service, product tags from tour_item)
+        // Tags per tour (service tags = tour_service count, product tags = tour_item count)
         long totalServiceTags = 0;
         long totalProductTags = 0;
         for (Map<String, Object> tb : tourBreakdown) {
             Long tid = ((Number) tb.get("tourId")).longValue();
-
-            // Collect tagSids linked to services (tour_service)
-            Set<String> serviceTagSids = new HashSet<>();
-            for (primespace.demo.model.TourService svc : serviceRepo.findByTourId(tid)) {
-                if (svc.getTagSid() != null && !svc.getTagSid().isEmpty()) {
-                    serviceTagSids.add(svc.getTagSid());
-                }
-            }
-
-            // Collect tagSids linked to products (tour_item)
-            Set<String> productTagSids = new HashSet<>();
-            for (primespace.demo.model.TourItem item : itemRepo.findByTourId(tid)) {
-                if (item.getTagSid() != null && !item.getTagSid().isEmpty()) {
-                    productTagSids.add(item.getTagSid());
-                }
-            }
-
-            long sCount = serviceTagSids.size();
-            long pCount = productTagSids.size();
+            long sCount = serviceRepo.findByTourId(tid).size();
+            long pCount = itemRepo.findByTourId(tid).size();
             long tCount = tagRepo.findByTourId(tid).size();
             tb.put("serviceTags", sCount);
             tb.put("productTags", pCount);
