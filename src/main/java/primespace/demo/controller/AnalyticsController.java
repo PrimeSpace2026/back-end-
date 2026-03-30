@@ -2,9 +2,11 @@ package primespace.demo.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import primespace.demo.model.Tour;
 import primespace.demo.model.TourEvent;
 import primespace.demo.model.TourVisit;
 import primespace.demo.repository.TourEventRepository;
+import primespace.demo.repository.TourRepository;
 import primespace.demo.repository.TourVisitRepository;
 
 import java.time.Instant;
@@ -16,10 +18,12 @@ public class AnalyticsController {
 
     private final TourVisitRepository visitRepo;
     private final TourEventRepository eventRepo;
+    private final TourRepository tourRepo;
 
-    public AnalyticsController(TourVisitRepository visitRepo, TourEventRepository eventRepo) {
+    public AnalyticsController(TourVisitRepository visitRepo, TourEventRepository eventRepo, TourRepository tourRepo) {
         this.visitRepo = visitRepo;
         this.eventRepo = eventRepo;
+        this.tourRepo = tourRepo;
     }
 
     // --- Track a visit start ---
@@ -57,6 +61,193 @@ public class AnalyticsController {
         event.setTargetId((String) body.getOrDefault("targetId", ""));
         event.setCreatedAt(Instant.now());
         return ResponseEntity.ok(eventRepo.save(event));
+    }
+
+    // --- Global analytics dashboard ---
+    @GetMapping("/global/stats")
+    public ResponseEntity<Map<String, Object>> getGlobalStats() {
+        Map<String, Object> stats = new LinkedHashMap<>();
+
+        // Total visits & unique visitors
+        long totalVisits = visitRepo.count();
+        long uniqueVisitors = visitRepo.countUniqueVisitors();
+        Double avgDuration = visitRepo.avgDurationGlobal();
+        stats.put("totalVisits", totalVisits);
+        stats.put("uniqueVisitors", uniqueVisitors);
+        stats.put("avgDuration", avgDuration);
+
+        // Global event counts
+        stats.put("tagClicks", eventRepo.countByEventType("tag_click"));
+        stats.put("productClicks", eventRepo.countByEventType("product_click"));
+        stats.put("addToCart", eventRepo.countByEventType("add_to_cart"));
+
+        // Most clicked product (global)
+        List<Object[]> topProducts = eventRepo.countByTargetGroupedGlobal("product_click");
+        if (!topProducts.isEmpty()) {
+            Map<String, Object> top = new HashMap<>();
+            top.put("name", topProducts.get(0)[0]);
+            top.put("clicks", topProducts.get(0)[1]);
+            stats.put("mostClickedProduct", top);
+        } else {
+            stats.put("mostClickedProduct", null);
+        }
+
+        // Most clicked tag (global)
+        List<Object[]> topTags = eventRepo.countByTargetGroupedGlobal("tag_click");
+        if (!topTags.isEmpty()) {
+            Map<String, Object> top = new HashMap<>();
+            top.put("name", topTags.get(0)[0]);
+            top.put("clicks", topTags.get(0)[1]);
+            stats.put("mostClickedTag", top);
+        } else {
+            stats.put("mostClickedTag", null);
+        }
+
+        // Product interaction heatmap (global)
+        List<Map<String, Object>> productHeatmap = new ArrayList<>();
+        for (Object[] row : topProducts) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("name", row[0]);
+            entry.put("clicks", row[1]);
+            productHeatmap.add(entry);
+        }
+        stats.put("productHeatmap", productHeatmap);
+
+        // Tag interaction heatmap (global)
+        List<Map<String, Object>> tagHeatmap = new ArrayList<>();
+        for (Object[] row : topTags) {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("name", row[0]);
+            entry.put("clicks", row[1]);
+            tagHeatmap.add(entry);
+        }
+        stats.put("tagHeatmap", tagHeatmap);
+
+        // Per-tour breakdown (sorted by visits desc)
+        Map<Long, String> tourNames = new HashMap<>();
+        for (Tour t : tourRepo.findAll()) {
+            tourNames.put(t.getId(), t.getName());
+        }
+
+        List<Object[]> visitsPerTour = visitRepo.countVisitsPerTour();
+        List<Map<String, Object>> tourBreakdown = new ArrayList<>();
+        for (Object[] row : visitsPerTour) {
+            Long tourId = ((Number) row[0]).longValue();
+            long count = ((Number) row[1]).longValue();
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("tourId", tourId);
+            entry.put("tourName", tourNames.getOrDefault(tourId, "Tour #" + tourId));
+            entry.put("visits", count);
+            entry.put("avgDuration", visitRepo.avgDurationByTourId(tourId));
+            entry.put("tagClicks", eventRepo.countByTourIdAndEventType(tourId, "tag_click"));
+            entry.put("productClicks", eventRepo.countByTourIdAndEventType(tourId, "product_click"));
+            entry.put("addToCart", eventRepo.countByTourIdAndEventType(tourId, "add_to_cart"));
+            tourBreakdown.add(entry);
+        }
+        // Include tours with 0 visits
+        for (Map.Entry<Long, String> e : tourNames.entrySet()) {
+            boolean found = tourBreakdown.stream().anyMatch(m -> m.get("tourId").equals(e.getKey()));
+            if (!found) {
+                Map<String, Object> entry = new LinkedHashMap<>();
+                entry.put("tourId", e.getKey());
+                entry.put("tourName", e.getValue());
+                entry.put("visits", 0L);
+                entry.put("avgDuration", null);
+                entry.put("tagClicks", 0L);
+                entry.put("productClicks", 0L);
+                entry.put("addToCart", 0L);
+                tourBreakdown.add(entry);
+            }
+        }
+        stats.put("tourBreakdown", tourBreakdown);
+
+        // Browser breakdown (global)
+        List<TourVisit> allVisits = visitRepo.findAllByOrderByStartedAtDesc();
+        Map<String, Integer> browserCounts = new LinkedHashMap<>();
+        for (TourVisit v : allVisits) {
+            String b = v.getBrowser() != null && !v.getBrowser().isEmpty() ? v.getBrowser() : "Unknown";
+            browserCounts.merge(b, 1, Integer::sum);
+        }
+        List<Map<String, Object>> browserList = new ArrayList<>();
+        browserCounts.entrySet().stream()
+            .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+            .forEach(e -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("name", e.getKey());
+                m.put("count", e.getValue());
+                browserList.add(m);
+            });
+        stats.put("browsers", browserList);
+
+        // Location breakdown (global)
+        Map<String, Integer> locationCounts = new LinkedHashMap<>();
+        for (TourVisit v : allVisits) {
+            String loc = "";
+            if (v.getCity() != null && !v.getCity().isEmpty()) loc = v.getCity();
+            if (v.getCountry() != null && !v.getCountry().isEmpty()) loc += (loc.isEmpty() ? "" : ", ") + v.getCountry();
+            if (loc.isEmpty()) loc = "Unknown";
+            locationCounts.merge(loc, 1, Integer::sum);
+        }
+        List<Map<String, Object>> locationList = new ArrayList<>();
+        locationCounts.entrySet().stream()
+            .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+            .forEach(e -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("name", e.getKey());
+                m.put("count", e.getValue());
+                locationList.add(m);
+            });
+        stats.put("locations", locationList);
+
+        // Geographic map points (global)
+        List<Map<String, Object>> mapPoints = new ArrayList<>();
+        Map<String, double[]> coordMap = new LinkedHashMap<>();
+        Map<String, Integer> coordCounts = new LinkedHashMap<>();
+        for (TourVisit v : allVisits) {
+            if (v.getLatitude() != null && v.getLongitude() != null) {
+                String key = String.format("%.2f,%.2f", v.getLatitude(), v.getLongitude());
+                coordMap.putIfAbsent(key, new double[]{v.getLatitude(), v.getLongitude()});
+                coordCounts.merge(key, 1, Integer::sum);
+            }
+        }
+        coordCounts.forEach((key, count) -> {
+            double[] coords = coordMap.get(key);
+            Map<String, Object> pt = new HashMap<>();
+            pt.put("lat", coords[0]);
+            pt.put("lng", coords[1]);
+            pt.put("count", count);
+            String loc = "";
+            for (TourVisit v : allVisits) {
+                if (v.getLatitude() != null && v.getLongitude() != null &&
+                    String.format("%.2f,%.2f", v.getLatitude(), v.getLongitude()).equals(key)) {
+                    if (v.getCity() != null && !v.getCity().isEmpty()) loc = v.getCity();
+                    if (v.getCountry() != null && !v.getCountry().isEmpty()) loc += (loc.isEmpty() ? "" : ", ") + v.getCountry();
+                    break;
+                }
+            }
+            pt.put("name", loc.isEmpty() ? "Unknown" : loc);
+            mapPoints.add(pt);
+        });
+        stats.put("mapPoints", mapPoints);
+
+        // Recent visits (global, last 50)
+        List<Map<String, Object>> recentVisitsList = new ArrayList<>();
+        for (TourVisit v : allVisits.subList(0, Math.min(50, allVisits.size()))) {
+            Map<String, Object> vMap = new LinkedHashMap<>();
+            vMap.put("id", v.getId());
+            vMap.put("tourId", v.getTourId());
+            vMap.put("tourName", tourNames.getOrDefault(v.getTourId(), "Tour #" + v.getTourId()));
+            vMap.put("visitorId", v.getVisitorId());
+            vMap.put("startedAt", v.getStartedAt());
+            vMap.put("durationSeconds", v.getDurationSeconds());
+            vMap.put("browser", v.getBrowser());
+            vMap.put("country", v.getCountry());
+            vMap.put("city", v.getCity());
+            recentVisitsList.add(vMap);
+        }
+        stats.put("recentVisits", recentVisitsList);
+
+        return ResponseEntity.ok(stats);
     }
 
     // --- Get stats for a tour ---

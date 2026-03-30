@@ -11,4 +11,16 @@ public interface TourVisitRepository extends JpaRepository<TourVisit, Long> {
 
     @Query("SELECT AVG(v.durationSeconds) FROM TourVisit v WHERE v.tourId = :tourId AND v.durationSeconds IS NOT NULL")
     Double avgDurationByTourId(Long tourId);
+
+    // Global queries
+    @Query("SELECT AVG(v.durationSeconds) FROM TourVisit v WHERE v.durationSeconds IS NOT NULL")
+    Double avgDurationGlobal();
+
+    @Query("SELECT COUNT(DISTINCT v.visitorId) FROM TourVisit v")
+    long countUniqueVisitors();
+
+    @Query("SELECT v.tourId, COUNT(v) FROM TourVisit v GROUP BY v.tourId ORDER BY COUNT(v) DESC")
+    List<Object[]> countVisitsPerTour();
+
+    List<TourVisit> findAllByOrderByStartedAtDesc();
 }
