@@ -5,9 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import primespace.demo.model.Tour;
 import primespace.demo.model.TourEvent;
 import primespace.demo.model.TourVisit;
-import primespace.demo.repository.TourEventRepository;
-import primespace.demo.repository.TourRepository;
-import primespace.demo.repository.TourVisitRepository;
+import primespace.demo.repository.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -19,11 +17,19 @@ public class AnalyticsController {
     private final TourVisitRepository visitRepo;
     private final TourEventRepository eventRepo;
     private final TourRepository tourRepo;
+    private final TourTagRepository tagRepo;
+    private final TourItemRepository itemRepo;
+    private final TourServiceRepository serviceRepo;
 
-    public AnalyticsController(TourVisitRepository visitRepo, TourEventRepository eventRepo, TourRepository tourRepo) {
+    public AnalyticsController(TourVisitRepository visitRepo, TourEventRepository eventRepo,
+                               TourRepository tourRepo, TourTagRepository tagRepo,
+                               TourItemRepository itemRepo, TourServiceRepository serviceRepo) {
         this.visitRepo = visitRepo;
         this.eventRepo = eventRepo;
         this.tourRepo = tourRepo;
+        this.tagRepo = tagRepo;
+        this.itemRepo = itemRepo;
+        this.serviceRepo = serviceRepo;
     }
 
     // --- Track a visit start ---
@@ -160,6 +166,57 @@ public class AnalyticsController {
             }
         }
         stats.put("tourBreakdown", tourBreakdown);
+
+        // Tags per tour (service tags + product tags)
+        long totalServiceTags = 0;
+        long totalProductTags = 0;
+        for (Map<String, Object> tb : tourBreakdown) {
+            Long tid = ((Number) tb.get("tourId")).longValue();
+            long sCount = serviceRepo.findByTourId(tid).size();
+            long pCount = itemRepo.findByTourId(tid).size();
+            long tCount = tagRepo.findByTourId(tid).size();
+            tb.put("serviceTags", sCount);
+            tb.put("productTags", pCount);
+            tb.put("totalTags", tCount);
+            totalServiceTags += sCount;
+            totalProductTags += pCount;
+        }
+        stats.put("totalServiceTags", totalServiceTags);
+        stats.put("totalProductTags", totalProductTags);
+
+        // Client/visitor breakdown: each unique visitor + visit count + tours visited
+        Map<String, Map<String, Object>> visitorMap = new LinkedHashMap<>();
+        for (TourVisit v : allVisits) {
+            String vid = v.getVisitorId() != null ? v.getVisitorId() : "anonymous";
+            Map<String, Object> vm = visitorMap.computeIfAbsent(vid, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("visitorId", k);
+                m.put("totalVisits", 0);
+                m.put("tours", new LinkedHashSet<String>());
+                m.put("lastSeen", null);
+                m.put("browser", "");
+                m.put("location", "");
+                return m;
+            });
+            vm.put("totalVisits", (int) vm.get("totalVisits") + 1);
+            ((Set<String>) vm.get("tours")).add(tourNames.getOrDefault(v.getTourId(), "Tour #" + v.getTourId()));
+            if (vm.get("lastSeen") == null) {
+                vm.put("lastSeen", v.getStartedAt());
+                vm.put("browser", v.getBrowser() != null ? v.getBrowser() : "");
+                String loc = "";
+                if (v.getCity() != null && !v.getCity().isEmpty()) loc = v.getCity();
+                if (v.getCountry() != null && !v.getCountry().isEmpty()) loc += (loc.isEmpty() ? "" : ", ") + v.getCountry();
+                vm.put("location", loc);
+            }
+        }
+        List<Map<String, Object>> clients = new ArrayList<>();
+        for (Map<String, Object> vm : visitorMap.values()) {
+            Map<String, Object> c = new LinkedHashMap<>(vm);
+            c.put("tours", new ArrayList<>((Set<String>) vm.get("tours")));
+            clients.add(c);
+        }
+        clients.sort((a, b) -> ((Integer) b.get("totalVisits")).compareTo((Integer) a.get("totalVisits")));
+        stats.put("clients", clients);
 
         // Browser breakdown (global)
         List<TourVisit> allVisits = visitRepo.findAllByOrderByStartedAtDesc();
