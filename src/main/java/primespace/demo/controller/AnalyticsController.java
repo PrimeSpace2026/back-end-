@@ -213,6 +213,7 @@ public class AnalyticsController {
         stats.put("totalProductTags", totalProductTags);
 
         // Client/visitor breakdown: each unique visitor + visit count + tours visited
+        List<TourVisit> allVisits = visitRepo.findAllByOrderByStartedAtDesc();
         Map<String, Map<String, Object>> visitorMap = new LinkedHashMap<>();
         for (TourVisit v : allVisits) {
             String vid = v.getVisitorId() != null ? v.getVisitorId() : "anonymous";
@@ -247,7 +248,6 @@ public class AnalyticsController {
         stats.put("clients", clients);
 
         // Browser breakdown (global)
-        List<TourVisit> allVisits = visitRepo.findAllByOrderByStartedAtDesc();
         Map<String, Integer> browserCounts = new LinkedHashMap<>();
         for (TourVisit v : allVisits) {
             String b = v.getBrowser() != null && !v.getBrowser().isEmpty() ? v.getBrowser() : "Unknown";
