@@ -1,10 +1,13 @@
 package primespace.demo.controller;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,11 +84,11 @@ public class MatterportController {
             // Alternative: Matterport Graph API endpoint
             String graphUrl = "https://my.matterport.com/api/mp/models/graph"
                     + "?operationName=ModelMattertags"
-                    + "&variable=" + java.net.URLEncoder.encode("{\"modelId\":\"" + modelId + "\"}", "UTF-8")
+                    + "&variable=" + URLEncoder.encode("{\"modelId\":\"" + modelId + "\"}", StandardCharsets.UTF_8)
                     + "&query="
-                    + java.net.URLEncoder.encode(
+                    + URLEncoder.encode(
                             "query ModelMattertags($modelId: ID!) { model(id: $modelId) { mattertags { sid label description anchorPosition { x y z } stemVector { x y z } color } } }",
-                            "UTF-8");
+                            StandardCharsets.UTF_8);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(graphUrl))
@@ -199,7 +202,7 @@ public class MatterportController {
                 }
             }
         } else if (node.isObject()) {
-            var fields = node.fields();
+            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
             while (fields.hasNext()) {
                 findTagArrays(fields.next().getValue(), tags);
             }
