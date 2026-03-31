@@ -1,11 +1,9 @@
 package primespace.demo.controller;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +23,8 @@ public class MatterportController {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
+    private static final String GRAPH_URL = "https://my.matterport.com/api/mp/models/graph";
+
     @GetMapping("/tags")
     public ResponseEntity<?> getTags(
             @RequestParam(required = false) String modelId,
@@ -37,24 +37,22 @@ public class MatterportController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Provide modelId or url parameter"));
             }
 
-            // Try fetching model JSON from Matterport player API
-            String apiUrl = "https://my.matterport.com/api/player/models/" + modelId + "/";
+            // Use Matterport GraphQL API to get real mattertags
+            String graphQuery = "{\"query\":\"{ model(id: \\\"" + modelId.replace("\"", "") +
+                    "\\\") { id name mattertags { id label description color enabled } } }\"}";
+
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl))
-                    .header("Accept", "application/json")
+                    .uri(URI.create(GRAPH_URL))
+                    .header("Content-Type", "application/json")
                     .header("User-Agent", "Mozilla/5.0")
-                    .GET()
+                    .header("Origin", "https://my.matterport.com")
+                    .POST(HttpRequest.BodyPublishers.ofString(graphQuery))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             String body = response.body();
 
-            List<Map<String, String>> tags = parseTagsFromJson(body);
-
-            if (tags.isEmpty()) {
-                // Fallback: try the showcase page and scrape __INITIAL_DATA__
-                tags = fetchFromShowcase(modelId);
-            }
+            List<Map<String, String>> tags = parseGraphResponse(body);
 
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("modelId", modelId);
@@ -67,94 +65,92 @@ public class MatterportController {
         }
     }
 
-    private List<Map<String, String>> fetchFromShowcase(String modelId) {
-        try {
-            String showcaseUrl = "https://my.matterport.com/show/?m=" + modelId;
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(showcaseUrl))
-                    .header("User-Agent", "Mozilla/5.0")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            return parseTagsFromJson(response.body());
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
     /**
-     * Parses mattertag entries from raw JSON text using regex.
-     * Looks for patterns like "sid":"xxx" near "label":"yyy" in JSON arrays.
+     * Parses mattertags from the GraphQL response using regex (no Jackson needed).
+     * Expected format: "mattertags" : [ { "id":"...", "label":"...", ... }, ... ]
      */
-    private List<Map<String, String>> parseTagsFromJson(String json) {
+    private List<Map<String, String>> parseGraphResponse(String json) {
         List<Map<String, String>> tags = new ArrayList<>();
         if (json == null || json.isEmpty()) return tags;
 
-        // Pattern to find mattertag-like objects with sid and label
-        // Matches: {"sid":"value", ... "label":"value" ...}
-        Pattern sidPattern = Pattern.compile("\"sid\"\\s*:\\s*\"([^\"]+)\"");
+        // Find the mattertags array section
+        int mattertagsIdx = json.indexOf("\"mattertags\"");
+        if (mattertagsIdx < 0) return tags;
+
+        // Find the array start
+        int arrayStart = json.indexOf('[', mattertagsIdx);
+        if (arrayStart < 0) return tags;
+
+        // Find matching array end
+        int arrayEnd = findMatchingBracket(json, arrayStart);
+        if (arrayEnd < 0) return tags;
+
+        String arrayContent = json.substring(arrayStart, arrayEnd + 1);
+
+        // Extract individual tag objects
+        Pattern idPattern = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
         Pattern labelPattern = Pattern.compile("\"label\"\\s*:\\s*\"([^\"]*?)\"");
         Pattern descPattern = Pattern.compile("\"description\"\\s*:\\s*\"([^\"]*?)\"");
         Pattern colorPattern = Pattern.compile("\"color\"\\s*:\\s*\"([^\"]*?)\"");
+        Pattern enabledPattern = Pattern.compile("\"enabled\"\\s*:\\s*(true|false)");
 
-        // Find all JSON object blocks that contain a "sid" field
-        // Split on potential object boundaries and check each chunk
+        // Split by object boundaries
         int searchFrom = 0;
-        while (searchFrom < json.length()) {
-            int sidIdx = json.indexOf("\"sid\"", searchFrom);
-            if (sidIdx < 0) break;
+        while (searchFrom < arrayContent.length()) {
+            int objStart = arrayContent.indexOf('{', searchFrom);
+            if (objStart < 0) break;
+            int objEnd = findMatchingBrace(arrayContent, objStart);
+            if (objEnd < 0) break;
 
-            // Get surrounding context (the JSON object containing this sid)
-            int blockStart = json.lastIndexOf('{', sidIdx);
-            int blockEnd = findMatchingBrace(json, blockStart);
-            if (blockStart < 0 || blockEnd < 0) {
-                searchFrom = sidIdx + 5;
-                continue;
-            }
+            String obj = arrayContent.substring(objStart, objEnd + 1);
 
-            String block = json.substring(blockStart, Math.min(blockEnd + 1, json.length()));
+            Matcher idMatcher = idPattern.matcher(obj);
+            if (idMatcher.find()) {
+                String id = idMatcher.group(1);
 
-            Matcher sidMatcher = sidPattern.matcher(block);
-            if (sidMatcher.find()) {
-                String sid = sidMatcher.group(1);
+                Matcher lm = labelPattern.matcher(obj);
+                String label = lm.find() ? lm.group(1) : "";
 
-                // Skip non-mattertag sids (like model sids, floor sids etc)
-                // Mattertag sids typically contain alphanumeric + hyphens
-                if (sid.isEmpty()) {
-                    searchFrom = sidIdx + 5;
-                    continue;
-                }
+                Matcher dm = descPattern.matcher(obj);
+                String description = dm.find() ? dm.group(1) : "";
 
-                Map<String, String> tag = new LinkedHashMap<>();
-                tag.put("sid", sid);
+                Matcher cm = colorPattern.matcher(obj);
+                String color = cm.find() ? cm.group(1) : "";
 
-                Matcher lm = labelPattern.matcher(block);
-                tag.put("label", lm.find() ? lm.group(1) : "");
+                Matcher em = enabledPattern.matcher(obj);
+                boolean enabled = em.find() ? Boolean.parseBoolean(em.group(1)) : true;
 
-                Matcher dm = descPattern.matcher(block);
-                tag.put("description", dm.find() ? dm.group(1) : "");
-
-                Matcher cm = colorPattern.matcher(block);
-                tag.put("color", cm.find() ? cm.group(1) : "");
-
-                // Avoid duplicates
-                boolean duplicate = false;
-                for (Map<String, String> existing : tags) {
-                    if (existing.get("sid").equals(sid)) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate) {
+                if (enabled) {
+                    Map<String, String> tag = new LinkedHashMap<>();
+                    tag.put("sid", id);
+                    tag.put("label", label);
+                    tag.put("description", description);
+                    tag.put("color", color);
                     tags.add(tag);
                 }
             }
 
-            searchFrom = blockEnd > sidIdx ? blockEnd : sidIdx + 5;
+            searchFrom = objEnd + 1;
         }
 
         return tags;
+    }
+
+    private int findMatchingBracket(String json, int openPos) {
+        if (openPos < 0 || openPos >= json.length()) return -1;
+        int depth = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        for (int i = openPos; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaped) { escaped = false; continue; }
+            if (c == '\\') { escaped = true; continue; }
+            if (c == '"') { inString = !inString; continue; }
+            if (inString) continue;
+            if (c == '[') depth++;
+            if (c == ']') { depth--; if (depth == 0) return i; }
+        }
+        return -1;
     }
 
     private int findMatchingBrace(String json, int openPos) {
@@ -162,26 +158,14 @@ public class MatterportController {
         int depth = 0;
         boolean inString = false;
         boolean escaped = false;
-        for (int i = openPos; i < json.length() && i < openPos + 5000; i++) {
+        for (int i = openPos; i < json.length(); i++) {
             char c = json.charAt(i);
-            if (escaped) {
-                escaped = false;
-                continue;
-            }
-            if (c == '\\') {
-                escaped = true;
-                continue;
-            }
-            if (c == '"') {
-                inString = !inString;
-                continue;
-            }
+            if (escaped) { escaped = false; continue; }
+            if (c == '\\') { escaped = true; continue; }
+            if (c == '"') { inString = !inString; continue; }
             if (inString) continue;
             if (c == '{') depth++;
-            if (c == '}') {
-                depth--;
-                if (depth == 0) return i;
-            }
+            if (c == '}') { depth--; if (depth == 0) return i; }
         }
         return -1;
     }
