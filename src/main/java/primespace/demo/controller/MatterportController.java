@@ -24,6 +24,7 @@ public class MatterportController {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private static final String GRAPH_URL = "https://my.matterport.com/api/mp/models/graph";
+    private static final Pattern VALID_MODEL_ID = Pattern.compile("^[a-zA-Z0-9_-]{5,30}$");
 
     @GetMapping("/tags")
     public ResponseEntity<?> getTags(
@@ -37,8 +38,13 @@ public class MatterportController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Provide modelId or url parameter"));
             }
 
+            // Validate modelId to prevent GraphQL injection
+            if (!VALID_MODEL_ID.matcher(modelId).matches()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid modelId format"));
+            }
+
             // Use Matterport GraphQL API to get real mattertags
-            String graphQuery = "{\"query\":\"{ model(id: \\\"" + modelId.replace("\"", "") +
+            String graphQuery = "{\"query\":\"{ model(id: \\\"" + modelId +
                     "\\\") { id name mattertags { id label description color enabled } } }\"}";
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -61,7 +67,7 @@ public class MatterportController {
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch tags: " + e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch tags"));
         }
     }
 
