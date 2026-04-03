@@ -40,7 +40,8 @@ public class DatabaseInitializer implements CommandLineRunner {
                 tour_url VARCHAR(255),
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
-                location VARCHAR(255)
+                location VARCHAR(255),
+                metadata_json TEXT
             )
         """);
 
@@ -48,6 +49,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS location VARCHAR(255)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS metadata_json TEXT"); } catch (Exception ignored) {}
 
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS tour_item (

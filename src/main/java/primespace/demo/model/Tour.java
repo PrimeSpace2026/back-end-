@@ -41,6 +41,9 @@ public class Tour {
 
     private String location;
 
+    @Column(name = "metadata_json", length = 4000)
+    private String metadataJson;
+
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TourTag> tags = new ArrayList<>();
@@ -151,5 +154,13 @@ public class Tour {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getMetadataJson() {
+        return metadataJson;
+    }
+
+    public void setMetadataJson(String metadataJson) {
+        this.metadataJson = metadataJson;
     }
 }

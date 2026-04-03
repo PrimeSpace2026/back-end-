@@ -55,6 +55,7 @@ public class TourController {
                     tour.setLatitude(tourDetails.getLatitude());
                     tour.setLongitude(tourDetails.getLongitude());
                     tour.setLocation(tourDetails.getLocation());
+                    tour.setMetadataJson(tourDetails.getMetadataJson());
                     return ResponseEntity.ok(tourRepository.save(tour));
                 })
                 .orElse(ResponseEntity.notFound().build());
