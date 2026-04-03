@@ -10,18 +10,14 @@
 
 import { ServerStatusProvider } from "./context/ServerStatusContext";
 import { ServerGate } from "./components/ServerGate";
+import { AddTourForm } from "./components/AddTourForm";
 
 function App() {
   return (
     <ServerStatusProvider>
       <ServerGate>
         {/* -------- Your existing app goes here -------- */}
-        <div className="min-h-screen bg-slate-950 text-white">
-          <h1 className="p-8 text-3xl font-bold">PrimeSpace</h1>
-          <p className="px-8 text-slate-400">
-            Your app content loads here after the server wakes up.
-          </p>
-        </div>
+        <AddTourForm />
         {/* --------------------------------------------- */}
       </ServerGate>
     </ServerStatusProvider>
