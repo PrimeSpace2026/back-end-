@@ -1,7 +1,17 @@
+import { useEffect, useState } from "react";
 import { useServerStatus } from "../context/ServerStatusContext";
 
 export function WakeUpScreen() {
   const { elapsedSeconds } = useServerStatus();
+  const [showSlowNetworkMessage, setShowSlowNetworkMessage] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setShowSlowNetworkMessage(true);
+    }, 5000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const progress = Math.min((elapsedSeconds / 60) * 100, 95);
 
@@ -30,12 +40,12 @@ export function WakeUpScreen() {
         {/* Status text */}
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-white/90">
-            Waking up the cloud server&hellip;
+            Préparation de votre visite 3D&hellip;
           </h2>
           <p className="text-sm leading-relaxed text-slate-400">
-            Our server sleeps when idle to save resources. The first load
-            typically takes <span className="text-indigo-400 font-medium">~60 seconds</span>.
-            Subsequent visits will be instant.
+            Nous lançons l&apos;expérience immersive PrimeSpace. Le premier chargement
+            peut prendre jusqu&apos;à <span className="font-medium text-indigo-400">~60 secondes</span>
+            pendant que le serveur se réveille.
           </p>
         </div>
 
@@ -49,18 +59,22 @@ export function WakeUpScreen() {
           </div>
           {/* Timer */}
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>Server warming up</span>
+            <span>Réveil du serveur</span>
             <span className="tabular-nums font-mono text-indigo-400">
               {elapsedSeconds}s
             </span>
           </div>
         </div>
 
-        {/* Elapsed badge */}
-        {elapsedSeconds > 15 && (
-          <p className="animate-fade-in text-xs text-slate-500">
-            Almost there — hang tight!
-          </p>
+        {showSlowNetworkMessage && (
+          <div className="animate-fade-in w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left shadow-lg shadow-indigo-950/20">
+            <p className="text-sm font-medium text-white/90">
+              Notre serveur se réveille...
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-300">
+              Merci de patienter quelques secondes de plus pendant que nous préparons votre visite 3D.
+            </p>
+          </div>
         )}
       </div>
     </div>
