@@ -35,12 +35,12 @@ public class DatabaseInitializer implements CommandLineRunner {
                 name VARCHAR(255),
                 description VARCHAR(1000),
                 category VARCHAR(255),
-                image_url VARCHAR(255),
+                image_url VARCHAR(2000),
                 surface DOUBLE PRECISION,
-                tour_url VARCHAR(255),
+                tour_url VARCHAR(2000),
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
-                location VARCHAR(255),
+                location VARCHAR(500),
                 metadata_json TEXT
             )
         """);
@@ -48,8 +48,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         // Add columns if they don't exist (for existing tables)
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION"); } catch (Exception ignored) {}
-        try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS location VARCHAR(255)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS location VARCHAR(500)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS metadata_json TEXT"); } catch (Exception ignored) {}
+
+        // Widen URL columns if table already existed with smaller limits
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN image_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN tour_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN location TYPE VARCHAR(500)"); } catch (Exception ignored) {}
 
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS tour_item (

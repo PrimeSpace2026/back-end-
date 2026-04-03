@@ -29,19 +29,22 @@ public class Tour {
 
     private String category;
 
+    @Column(length = 2000)
     private String imageUrl;
 
     private Double surface;
 
+    @Column(length = 2000)
     private String tourUrl;
 
     private Double latitude;
 
     private Double longitude;
 
+    @Column(length = 500)
     private String location;
 
-    @Column(name = "metadata_json", length = 4000)
+    @Column(name = "metadata_json", columnDefinition = "TEXT")
     private String metadataJson;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
