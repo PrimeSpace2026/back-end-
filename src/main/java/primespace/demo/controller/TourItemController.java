@@ -48,6 +48,7 @@ public class TourItemController {
                     item.setCurrency(details.getCurrency());
                     item.setExternalUrl(details.getExternalUrl());
                     item.setBrand(details.getBrand());
+                    item.setShowAddToCart(details.getShowAddToCart());
                     item.setTagSid(details.getTagSid());
                     item.setCoordinates(details.getCoordinates());
                     return ResponseEntity.ok(tourItemRepository.save(item));

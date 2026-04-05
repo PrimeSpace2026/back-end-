@@ -71,6 +71,12 @@
         .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
         .hotspot-list { display: flex; flex-direction: column; gap: 10px; }
         .hotspot-item { border: 1px dashed #d5d0f5; border-radius: 10px; background: #fff; padding: 12px; }
+        .service-item { border: 1px dashed #c5e8d5; border-radius: 10px; background: #f5fff8; padding: 12px; }
+        .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .toggle-row label { font-size: 13px; color: #555; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #6c5ce7; cursor: pointer; }
+        .service-badge { display: inline-flex; align-items: center; gap: 4px; background: #e8f5e9; color: #388e3c; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
+        .services-row { display: flex; flex-wrap: wrap; margin-top: 8px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
         .btn-cancel { background: #f0f0f0; color: #555; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
         .btn-cancel:hover { background: #e0e0e0; }
@@ -188,6 +194,19 @@
                     </div>
                 </div>
 
+                <!-- Services / Coaches Section (always visible) -->
+                <div id="servicesSection" style="margin-bottom: 16px; padding: 16px; border: 1px solid #c5e8d5; border-radius: 12px; background: #f5fff8;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: #388e3c; margin-bottom: 12px;">Services & Coaches</h3>
+                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez des coachs ou services associés à cette visite. Ils apparaîtront en bas de la fiche.</small>
+                    <div class="form-group">
+                        <div class="section-head">
+                            <label>Liste des services</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addServiceEntry()">+ Ajouter</button>
+                        </div>
+                        <div id="servicesList" class="hotspot-list"></div>
+                    </div>
+                </div>
+
                 <div id="restaurantFields" class="dynamic-section">
                     <h3>Informations Restaurant</h3>
                     <div class="field-row">
@@ -293,6 +312,7 @@
                             <span class="surface">${tour.surface ? tour.surface + ' m²' : ''}</span>
                             ${tour.tourUrl ? `<a class="view-link" href="${escapeHtml(tour.tourUrl)}" target="_blank">Voir la visite ▶</a>` : ''}
                         </div>
+                        ${renderServicesBadges(safeJsonParse(tour.metadataJson))}
                         <div class="card-actions">
                             <button class="btn-sm btn-edit" onclick="editTour(${tour.id})">✏️ Modifier</button>
                             <button class="btn-sm btn-delete" onclick="deleteTour(${tour.id})">🗑️ Supprimer</button>
@@ -424,6 +444,7 @@
             const container = document.getElementById('hotspotsList');
             const item = document.createElement('div');
             item.className = 'hotspot-item';
+            const cartChecked = hotspot.showAddToCart !== false ? 'checked' : '';
             item.innerHTML = `
                 <div class="field-row">
                     <div class="form-group">
@@ -439,7 +460,64 @@
                     <label>Description courte</label>
                     <textarea class="hotspot-description" placeholder="Décrivez rapidement cet espace...">${escapeHtml(hotspot.description || '')}</textarea>
                 </div>
-                <button type="button" class="btn-sm btn-delete" onclick="this.parentElement.remove()">Supprimer</button>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Lien "Ajouter au panier"</label>
+                        <input type="url" class="hotspot-cart-url" placeholder="https://shop.example.com/..." value="${escapeAttr(hotspot.cartUrl || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Prix</label>
+                        <input type="text" class="hotspot-price" placeholder="Ex: 49.99 €" value="${escapeAttr(hotspot.price || '')}">
+                    </div>
+                </div>
+                <div class="toggle-row">
+                    <label><input type="checkbox" class="hotspot-show-cart" ${cartChecked}> Afficher le bouton "Ajouter au panier"</label>
+                </div>
+                <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
+            `;
+            container.appendChild(item);
+        }
+
+        function addServiceEntry(service = {}) {
+            const container = document.getElementById('servicesList');
+            const item = document.createElement('div');
+            item.className = 'service-item';
+            item.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Nom du service / coach</label>
+                        <input type="text" class="service-name" placeholder="Ex: Coach Fitness" value="${escapeAttr(service.name || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" class="service-image" placeholder="https://..." value="${escapeAttr(service.imageUrl || '')}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="service-description" placeholder="Décrivez ce service...">${escapeHtml(service.description || '')}</textarea>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="tel" class="service-phone" placeholder="+216 ..." value="${escapeAttr(service.phone || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="tel" class="service-whatsapp" placeholder="+216 ..." value="${escapeAttr(service.whatsapp || '')}">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <input type="url" class="service-instagram" placeholder="https://instagram.com/..." value="${escapeAttr(service.instagram || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Facebook</label>
+                        <input type="url" class="service-facebook" placeholder="https://facebook.com/..." value="${escapeAttr(service.facebook || '')}">
+                    </div>
+                </div>
+                <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
             `;
             container.appendChild(item);
         }
@@ -458,6 +536,8 @@
             setCheckedValues('hotelAmenities', []);
             document.getElementById('hotspotsList').innerHTML = '';
             addHotspot();
+            document.getElementById('servicesList').innerHTML = '';
+            addServiceEntry();
             handleCategoryChange();
         }
 
@@ -476,8 +556,20 @@
                 hotspots: Array.from(document.querySelectorAll('.hotspot-item')).map(item => ({
                     title: item.querySelector('.hotspot-title').value.trim(),
                     link: item.querySelector('.hotspot-link').value.trim(),
-                    description: item.querySelector('.hotspot-description').value.trim()
-                })).filter(item => item.title || item.link || item.description)
+                    description: item.querySelector('.hotspot-description').value.trim(),
+                    cartUrl: item.querySelector('.hotspot-cart-url').value.trim(),
+                    price: item.querySelector('.hotspot-price').value.trim(),
+                    showAddToCart: item.querySelector('.hotspot-show-cart').checked
+                })).filter(item => item.title || item.link || item.description),
+                services: Array.from(document.querySelectorAll('.service-item')).map(item => ({
+                    name: item.querySelector('.service-name').value.trim(),
+                    imageUrl: item.querySelector('.service-image').value.trim(),
+                    description: item.querySelector('.service-description').value.trim(),
+                    phone: item.querySelector('.service-phone').value.trim(),
+                    whatsapp: item.querySelector('.service-whatsapp').value.trim(),
+                    instagram: item.querySelector('.service-instagram').value.trim(),
+                    facebook: item.querySelector('.service-facebook').value.trim()
+                })).filter(item => item.name || item.description)
             };
         }
 
@@ -500,6 +592,21 @@
             } else {
                 hotspots.forEach(addHotspot);
             }
+
+            const services = Array.isArray(metadata.services) ? metadata.services : [];
+            document.getElementById('servicesList').innerHTML = '';
+            if (services.length === 0) {
+                addServiceEntry();
+            } else {
+                services.forEach(addServiceEntry);
+            }
+        }
+
+        function renderServicesBadges(metadata) {
+            const services = Array.isArray(metadata.services) ? metadata.services : [];
+            if (services.length === 0) return '';
+            const badges = services.map(s => `<span class="service-badge">🏷️ ${escapeHtml(s.name)}</span>`).join('');
+            return `<div class="services-row">${badges}</div>`;
         }
 
         function safeJsonParse(value) {

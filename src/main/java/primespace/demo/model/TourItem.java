@@ -45,6 +45,8 @@ public class TourItem {
 
     private String brand;
 
+    private Boolean showAddToCart = true;
+
     private String tagSid;
 
     @Column(length = 100)
@@ -94,6 +96,9 @@ public class TourItem {
 
     public String getBrand() { return brand; }
     public void setBrand(String brand) { this.brand = brand; }
+
+    public Boolean getShowAddToCart() { return showAddToCart; }
+    public void setShowAddToCart(Boolean showAddToCart) { this.showAddToCart = showAddToCart; }
 
     public String getTagSid() { return tagSid; }
     public void setTagSid(String tagSid) { this.tagSid = tagSid; }
