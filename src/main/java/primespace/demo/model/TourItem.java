@@ -45,6 +45,7 @@ public class TourItem {
 
     private String brand;
 
+    @Column(columnDefinition = "boolean default true")
     private Boolean showAddToCart = true;
 
     private String tagSid;
