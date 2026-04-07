@@ -45,7 +45,7 @@ public class MatterportController {
 
             // Use Matterport GraphQL API to get real mattertags
             String graphQuery = "{\"query\":\"{ model(id: \\\"" + modelId +
-                    "\\\") { id name mattertags { id label description color enabled } } }\"}";
+                    "\\\") { id name mattertags { id label description color enabled floorIndex } } }\"}";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(GRAPH_URL))
@@ -99,6 +99,7 @@ public class MatterportController {
         Pattern descPattern = Pattern.compile("\"description\"\\s*:\\s*\"([^\"]*?)\"");
         Pattern colorPattern = Pattern.compile("\"color\"\\s*:\\s*\"([^\"]*?)\"");
         Pattern enabledPattern = Pattern.compile("\"enabled\"\\s*:\\s*(true|false)");
+        Pattern floorPattern = Pattern.compile("\"floorIndex\"\\s*:\\s*(-?\\d+)");
 
         // Split by object boundaries
         int searchFrom = 0;
@@ -132,6 +133,8 @@ public class MatterportController {
                     tag.put("label", label);
                     tag.put("description", description);
                     tag.put("color", color);
+                    Matcher fm = floorPattern.matcher(obj);
+                    tag.put("floorIndex", fm.find() ? fm.group(1) : "");
                     tags.add(tag);
                 }
             }
