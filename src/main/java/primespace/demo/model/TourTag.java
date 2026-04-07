@@ -32,8 +32,6 @@ public class TourTag {
 
     private String sid;
 
-    private Integer floor;
-
     public TourTag() {}
 
     public TourTag(Long tourId, String name, String sid) {
@@ -52,6 +50,4 @@ public class TourTag {
     public void setName(String name) { this.name = name; }
     public String getSid() { return sid; }
     public void setSid(String sid) { this.sid = sid; }
-    public Integer getFloor() { return floor; }
-    public void setFloor(Integer floor) { this.floor = floor; }
 }
