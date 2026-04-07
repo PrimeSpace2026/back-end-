@@ -189,4 +189,100 @@ public class MatterportController {
         }
         return url.trim();
     }
+
+    @GetMapping("/sweeps")
+    public ResponseEntity<?> getSweeps(
+            @RequestParam(required = false) String modelId,
+            @RequestParam(required = false) String url) {
+        try {
+            if ((modelId == null || modelId.isEmpty()) && url != null && !url.isEmpty()) {
+                modelId = extractModelId(url);
+            }
+            if (modelId == null || modelId.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Provide modelId or url parameter"));
+            }
+            if (!VALID_MODEL_ID.matcher(modelId).matches()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid modelId format"));
+            }
+
+            String graphQuery = "{\"query\":\"{ model(id: \\\"" + modelId +
+                    "\\\") { locations { id label floor { label sequence } } } }\"}";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GRAPH_URL))
+                    .header("Content-Type", "application/json")
+                    .header("User-Agent", "Mozilla/5.0")
+                    .header("Origin", "https://my.matterport.com")
+                    .POST(HttpRequest.BodyPublishers.ofString(graphQuery))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            String body = response.body();
+
+            List<Map<String, Object>> sweeps = parseSweepsResponse(body);
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("modelId", modelId);
+            result.put("totalSweeps", sweeps.size());
+            result.put("sweeps", sweeps);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to fetch sweeps"));
+        }
+    }
+
+    private List<Map<String, Object>> parseSweepsResponse(String json) {
+        List<Map<String, Object>> sweeps = new ArrayList<>();
+        if (json == null || json.isEmpty()) return sweeps;
+
+        int locIdx = json.indexOf("\"locations\"");
+        if (locIdx < 0) return sweeps;
+        int arrayStart = json.indexOf('[', locIdx);
+        if (arrayStart < 0) return sweeps;
+        int arrayEnd = findMatchingBracket(json, arrayStart);
+        if (arrayEnd < 0) return sweeps;
+
+        String arrayContent = json.substring(arrayStart, arrayEnd + 1);
+
+        Pattern idPattern = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
+        Pattern labelPattern = Pattern.compile("\"label\"\\s*:\\s*\"([^\"]*?)\"");
+        Pattern seqPattern = Pattern.compile("\"sequence\"\\s*:\\s*(-?\\d+)");
+
+        int searchFrom = 0;
+        while (searchFrom < arrayContent.length()) {
+            int objStart = arrayContent.indexOf('{', searchFrom);
+            if (objStart < 0) break;
+            int objEnd = findMatchingBrace(arrayContent, objStart);
+            if (objEnd < 0) break;
+
+            String obj = arrayContent.substring(objStart, objEnd + 1);
+
+            Matcher idM = idPattern.matcher(obj);
+            Matcher labelM = labelPattern.matcher(obj);
+            if (idM.find() && labelM.find()) {
+                Map<String, Object> sweep = new LinkedHashMap<>();
+                sweep.put("id", idM.group(1));
+                sweep.put("index", labelM.group(1));
+
+                // Check for floor info (nested object)
+                int floorIdx = obj.indexOf("\"floor\"");
+                if (floorIdx >= 0) {
+                    int floorObjStart = obj.indexOf('{', floorIdx);
+                    if (floorObjStart >= 0) {
+                        int floorObjEnd = findMatchingBrace(obj, floorObjStart);
+                        if (floorObjEnd >= 0) {
+                            String floorObj = obj.substring(floorObjStart, floorObjEnd + 1);
+                            Matcher floorLabelM = labelPattern.matcher(floorObj);
+                            Matcher floorSeqM = seqPattern.matcher(floorObj);
+                            sweep.put("floorLabel", floorLabelM.find() ? floorLabelM.group(1) : "");
+                            sweep.put("floorSequence", floorSeqM.find() ? Integer.parseInt(floorSeqM.group(1)) : -1);
+                        }
+                    }
+                }
+                sweeps.add(sweep);
+            }
+            searchFrom = objEnd + 1;
+        }
+        return sweeps;
+    }
 }
