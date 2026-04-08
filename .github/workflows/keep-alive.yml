@@ -1,0 +1,15 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # Runs every 14 minutes (Render shuts down at 15 min idle)
+    - cron: "*/14 * * * *"
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend
+        run: |
+          curl -sf --max-time 30 https://back-end-tp6x.onrender.com/api/wake || echo "Server waking up..."

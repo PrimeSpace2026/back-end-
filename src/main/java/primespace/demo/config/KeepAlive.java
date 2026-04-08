@@ -21,7 +21,7 @@ public class KeepAlive {
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    @Scheduled(fixedRate = 600_000) // every 10 minutes
+    @Scheduled(fixedRate = 300_000) // every 5 minutes
     public void ping() {
         if (renderUrl == null || renderUrl.isBlank()) {
             return;

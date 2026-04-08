@@ -26,6 +26,7 @@ const API_BASE =
 const WAKE_URL = `${API_BASE}/api/wake`;
 const PING_INTERVAL_MS = 4000; // ping every 4 seconds
 const PING_TIMEOUT_MS = 5000; // abort individual ping after 5s
+const KEEPALIVE_INTERVAL_MS = 600_000; // background ping every 10 min once awake
 
 export function ServerStatusProvider({ children }: { children: ReactNode }) {
   const [isServerAwake, setIsServerAwake] = useState(false);
@@ -83,12 +84,22 @@ export function ServerStatusProvider({ children }: { children: ReactNode }) {
     };
   }, [ping]);
 
-  // Once awake, clear all intervals
+  const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Once awake, clear wake-up intervals and start background keep-alive
   useEffect(() => {
     if (isServerAwake) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timerRef.current) clearInterval(timerRef.current);
+
+      // Background keep-alive: ping every 10 min to prevent Render shutdown
+      keepAliveRef.current = setInterval(() => {
+        fetch(WAKE_URL, { method: "GET", cache: "no-store" }).catch(() => {});
+      }, KEEPALIVE_INTERVAL_MS);
     }
+    return () => {
+      if (keepAliveRef.current) clearInterval(keepAliveRef.current);
+    };
   }, [isServerAwake]);
 
   return (
