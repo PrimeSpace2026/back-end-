@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import primespace.demo.model.Tour;
 import primespace.demo.repository.TourRepository;
 
@@ -22,7 +23,7 @@ public class OgController {
     }
 
     @GetMapping(value = "/og/view/{id}", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> tourOg(@PathVariable Long id) {
+    public ResponseEntity<String> tourOg(@PathVariable Long id, HttpServletRequest request) {
         Optional<Tour> opt = tourRepository.findById(id);
         if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -32,6 +33,8 @@ public class OgController {
         String description = escapeHtml(tour.getDescription() != null ? tour.getDescription()
                 : "Explorez cette visite virtuelle 3D sur PrimeSpace");
         String image = tour.getImageUrl() != null ? tour.getImageUrl() : SITE_URL + "/logo.jpg";
+        String qs = request.getQueryString();
+        String redirectUrl = SITE_URL + "/view/" + id + (qs != null && !qs.isEmpty() ? "?" + qs : "");
         String canonicalUrl = SITE_URL + "/view/" + id;
 
         String html = """
@@ -58,7 +61,7 @@ public class OgController {
                 </body>
                 </html>
                 """.formatted(title, description, title, description, image, canonicalUrl,
-                title, description, image, canonicalUrl, canonicalUrl, title);
+                title, description, image, redirectUrl, redirectUrl, title);
 
         return ResponseEntity.ok(html);
     }
