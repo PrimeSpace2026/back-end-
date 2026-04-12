@@ -1,7 +1,10 @@
 package primespace.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +22,8 @@ import primespace.demo.repository.TourRepository;
 @RequestMapping("/api/tours")
 public class TourController {
 
+    private static final Logger log = LoggerFactory.getLogger(TourController.class);
+
     private final TourRepository tourRepository;
 
     public TourController(TourRepository tourRepository) {
@@ -26,8 +31,14 @@ public class TourController {
     }
 
     @GetMapping
-    public List<Tour> getAllTours() {
-        return tourRepository.findAll();
+    public ResponseEntity<?> getAllTours() {
+        try {
+            return ResponseEntity.ok(tourRepository.findAll());
+        } catch (Exception e) {
+            log.error("Failed to fetch tours", e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getClass().getSimpleName(), "message", e.getMessage() != null ? e.getMessage() : "unknown"));
+        }
     }
 
     @GetMapping("/{id}")
