@@ -1,6 +1,8 @@
 package primespace.demo.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -48,5 +50,21 @@ public class HealthController {
         info.put("db_user_env", System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "NOT SET");
         info.put("db_pass_env", System.getenv("DB_PASS") != null ? "SET (length=" + System.getenv("DB_PASS").length() + ")" : "NOT SET");
         return ResponseEntity.ok(info);
+    }
+
+    @GetMapping("/api/debug-tables")
+    public ResponseEntity<?> debugTables() {
+        List<Map<String, String>> tables = new ArrayList<>();
+        try (var conn = dataSource.getConnection();
+             var rs = conn.getMetaData().getTables(null, "public", "%", new String[]{"TABLE"})) {
+            while (rs.next()) {
+                Map<String, String> t = new HashMap<>();
+                t.put("name", rs.getString("TABLE_NAME"));
+                tables.add(t);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+        return ResponseEntity.ok(tables);
     }
 }
