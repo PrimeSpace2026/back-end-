@@ -9,4 +9,5 @@ import primespace.demo.model.TourTag;
 public interface TourTagRepository extends JpaRepository<TourTag, Long> {
     List<TourTag> findByTourId(Long tourId);
     void deleteByTourId(Long tourId);
+    void deleteByNameStartingWith(String prefix);
 }

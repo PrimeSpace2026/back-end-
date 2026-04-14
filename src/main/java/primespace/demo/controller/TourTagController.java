@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,5 +41,15 @@ public class TourTagController {
         }
         List<TourTag> saved = tourTagRepository.saveAll(tags);
         return ResponseEntity.ok(saved);
+    }
+
+    // Cleanup: remove old sweep tags (360° Vue <uuid>) from all tours
+    @DeleteMapping("/cleanup-sweeps")
+    @Transactional
+    public ResponseEntity<String> cleanupSweepTags(@PathVariable Long tourId) {
+        List<TourTag> all = tourTagRepository.findByTourId(tourId);
+        List<TourTag> sweepTags = all.stream().filter(t -> t.getName() != null && t.getName().startsWith("360°")).toList();
+        tourTagRepository.deleteAll(sweepTags);
+        return ResponseEntity.ok("Removed " + sweepTags.size() + " sweep tags from tour " + tourId);
     }
 }
