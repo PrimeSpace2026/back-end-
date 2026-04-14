@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MatterportController {
 
     private static final String GRAPH_URL = "https://my.matterport.com/api/models/graph";
+    private static final String APP_KEY = "b7uar4u57xdec0zw7dwygt7md";
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -66,6 +67,7 @@ public class MatterportController {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(GRAPH_URL))
                     .header("Content-Type", "application/json")
+                    .header("x-matterport-application-key", APP_KEY)
                     .POST(HttpRequest.BodyPublishers.ofString(body))
                     .timeout(Duration.ofSeconds(15))
                     .build();
