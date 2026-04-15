@@ -55,6 +55,9 @@ public class FurnitureController {
                     model.setModelUrl(details.getModelUrl());
                     model.setThumbnailUrl(details.getThumbnailUrl());
                     model.setDefaultScale(details.getDefaultScale());
+                    model.setLocalScale(details.getLocalScale());
+                    model.setLocalOffsetY(details.getLocalOffsetY());
+                    model.setLocalRotationY(details.getLocalRotationY());
                     return ResponseEntity.ok(furnitureModelRepository.save(model));
                 })
                 .orElse(ResponseEntity.notFound().build());

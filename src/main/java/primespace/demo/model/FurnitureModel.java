@@ -27,6 +27,11 @@ public class FurnitureModel {
 
     private Double defaultScale;
 
+    // Per-model transform offsets (gltf models have different origins/units)
+    private Double localScale;      // uniform scale for gltfLoader (e.g. 0.01 for cm-based models)
+    private Double localOffsetY;    // Y offset so model sits on ground (e.g. -0.32)
+    private Double localRotationY;  // default Y rotation in degrees
+
     // Getters and setters
 
     public Long getId() { return id; }
@@ -46,4 +51,13 @@ public class FurnitureModel {
 
     public Double getDefaultScale() { return defaultScale; }
     public void setDefaultScale(Double defaultScale) { this.defaultScale = defaultScale; }
+
+    public Double getLocalScale() { return localScale; }
+    public void setLocalScale(Double localScale) { this.localScale = localScale; }
+
+    public Double getLocalOffsetY() { return localOffsetY; }
+    public void setLocalOffsetY(Double localOffsetY) { this.localOffsetY = localOffsetY; }
+
+    public Double getLocalRotationY() { return localRotationY; }
+    public void setLocalRotationY(Double localRotationY) { this.localRotationY = localRotationY; }
 }

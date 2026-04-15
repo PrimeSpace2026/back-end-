@@ -14,7 +14,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:8081", "http://localhost:8082", "https://virtual-tour-builder.vercel.app", "https://primespace.studio", "https://www.primespace.studio")
+                        .allowedOrigins("http://localhost:8081", "http://localhost:8082", "http://localhost:8083", "https://virtual-tour-builder.vercel.app", "https://primespace.studio", "https://www.primespace.studio")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }

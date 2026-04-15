@@ -39,18 +39,28 @@ public class StagedObject {
     @Column(length = 2000)
     private String modelUrl;
 
+    @Column(name = "sweep_id")
     private String sweepId;
 
+    @Column(name = "pos_x")
     private Double posX;
+    @Column(name = "pos_y")
     private Double posY;
+    @Column(name = "pos_z")
     private Double posZ;
 
+    @Column(name = "rot_x")
     private Double rotX;
+    @Column(name = "rot_y")
     private Double rotY;
+    @Column(name = "rot_z")
     private Double rotZ;
 
+    @Column(name = "scale_x")
     private Double scaleX;
+    @Column(name = "scale_y")
     private Double scaleY;
+    @Column(name = "scale_z")
     private Double scaleZ;
 
     private String label;
