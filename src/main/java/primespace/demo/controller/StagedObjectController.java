@@ -54,6 +54,9 @@ public class StagedObjectController {
                     obj.setScaleY(details.getScaleY());
                     obj.setScaleZ(details.getScaleZ());
                     obj.setLabel(details.getLabel());
+                    obj.setLocalScale(details.getLocalScale());
+                    obj.setLocalOffsetY(details.getLocalOffsetY());
+                    obj.setLocalRotationY(details.getLocalRotationY());
                     return ResponseEntity.ok(stagedObjectRepository.save(obj));
                 })
                 .orElse(ResponseEntity.notFound().build());

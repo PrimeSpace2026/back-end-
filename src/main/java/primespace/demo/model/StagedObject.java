@@ -65,6 +65,15 @@ public class StagedObject {
 
     private String label;
 
+    @Column(name = "local_scale")
+    private Double localScale;
+
+    @Column(name = "local_offset_y")
+    private Double localOffsetY;
+
+    @Column(name = "local_rotation_y")
+    private Double localRotationY;
+
     // Getters and setters
 
     public Long getId() { return id; }
@@ -117,4 +126,13 @@ public class StagedObject {
 
     public String getLabel() { return label; }
     public void setLabel(String label) { this.label = label; }
+
+    public Double getLocalScale() { return localScale; }
+    public void setLocalScale(Double localScale) { this.localScale = localScale; }
+
+    public Double getLocalOffsetY() { return localOffsetY; }
+    public void setLocalOffsetY(Double localOffsetY) { this.localOffsetY = localOffsetY; }
+
+    public Double getLocalRotationY() { return localRotationY; }
+    public void setLocalRotationY(Double localRotationY) { this.localRotationY = localRotationY; }
 }
