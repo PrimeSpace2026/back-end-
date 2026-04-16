@@ -75,6 +75,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN image_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour_item ALTER COLUMN external_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
 
+        // Ensure chamber.booking_url column exists
+        try { jdbcTemplate.execute("ALTER TABLE chamber ADD COLUMN IF NOT EXISTS booking_url VARCHAR(2000)"); } catch (Exception ignored) {}
+
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS tour_tag (
                 id BIGSERIAL PRIMARY KEY,

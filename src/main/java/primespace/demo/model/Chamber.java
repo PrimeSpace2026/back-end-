@@ -45,6 +45,9 @@ public class Chamber {
     @Column(length = 100)
     private String coordinates;
 
+    @Column(length = 2000)
+    private String bookingUrl;
+
     public Chamber() {
     }
 
@@ -87,4 +90,7 @@ public class Chamber {
 
     public String getCoordinates() { return coordinates; }
     public void setCoordinates(String coordinates) { this.coordinates = coordinates; }
+
+    public String getBookingUrl() { return bookingUrl; }
+    public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
 }
