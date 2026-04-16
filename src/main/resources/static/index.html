@@ -76,7 +76,9 @@
         .toggle-row label { font-size: 13px; color: #555; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #6c5ce7; cursor: pointer; }
         .service-badge { display: inline-flex; align-items: center; gap: 4px; background: #e8f5e9; color: #388e3c; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
+        .chamber-badge { display: inline-flex; align-items: center; gap: 4px; background: #e3f2fd; color: #1565c0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
         .services-row { display: flex; flex-wrap: wrap; margin-top: 8px; }
+        .chamber-item { border: 1px dashed #90caf9; border-radius: 10px; background: #f0f7ff; padding: 12px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
         .btn-cancel { background: #f0f0f0; color: #555; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
         .btn-cancel:hover { background: #e0e0e0; }
@@ -204,6 +206,19 @@
                             <button type="button" class="btn-sm btn-edit" onclick="addServiceEntry()">+ Ajouter</button>
                         </div>
                         <div id="servicesList" class="hotspot-list"></div>
+                    </div>
+                </div>
+
+                <!-- Chambers / Rooms Section (always visible) -->
+                <div id="chambersSection" style="margin-bottom: 16px; padding: 16px; border: 1px solid #90caf9; border-radius: 12px; background: #f0f7ff;">
+                    <h3 style="font-size: 15px; font-weight: 700; color: #1565c0; margin-bottom: 12px;">🛏️ Chambres</h3>
+                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez des chambres associées à cette visite. Elles apparaîtront en bas de la fiche.</small>
+                    <div class="form-group">
+                        <div class="section-head">
+                            <label>Liste des chambres</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addChamberEntry()">+ Ajouter</button>
+                        </div>
+                        <div id="chambersList" class="hotspot-list"></div>
                     </div>
                 </div>
 
@@ -522,6 +537,40 @@
             container.appendChild(item);
         }
 
+        function addChamberEntry(chamber = {}) {
+            const container = document.getElementById('chambersList');
+            const item = document.createElement('div');
+            item.className = 'chamber-item';
+            item.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Nom de la chambre</label>
+                        <input type="text" class="chamber-name" placeholder="Ex: Suite Deluxe" value="${escapeAttr(chamber.name || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" class="chamber-image" placeholder="https://..." value="${escapeAttr(chamber.imageUrl || '')}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="chamber-description" placeholder="Décrivez cette chambre...">${escapeHtml(chamber.description || '')}</textarea>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Prix</label>
+                        <input type="number" class="chamber-price" placeholder="Ex: 150" step="any" value="${escapeAttr(chamber.price != null ? String(chamber.price) : '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Devise</label>
+                        <input type="text" class="chamber-currency" placeholder="Ex: TND" value="${escapeAttr(chamber.currency || 'TND')}">
+                    </div>
+                </div>
+                <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
+            `;
+            container.appendChild(item);
+        }
+
         function resetDynamicFields() {
             document.getElementById('category').value = 'Hôtellerie';
             document.getElementById('roomType').value = '';
@@ -538,6 +587,8 @@
             addHotspot();
             document.getElementById('servicesList').innerHTML = '';
             addServiceEntry();
+            document.getElementById('chambersList').innerHTML = '';
+            addChamberEntry();
             handleCategoryChange();
         }
 
@@ -569,6 +620,13 @@
                     whatsapp: item.querySelector('.service-whatsapp').value.trim(),
                     instagram: item.querySelector('.service-instagram').value.trim(),
                     facebook: item.querySelector('.service-facebook').value.trim()
+                })).filter(item => item.name || item.description),
+                chambers: Array.from(document.querySelectorAll('.chamber-item')).map(item => ({
+                    name: item.querySelector('.chamber-name').value.trim(),
+                    imageUrl: item.querySelector('.chamber-image').value.trim(),
+                    description: item.querySelector('.chamber-description').value.trim(),
+                    price: item.querySelector('.chamber-price').value ? parseFloat(item.querySelector('.chamber-price').value) : null,
+                    currency: item.querySelector('.chamber-currency').value.trim() || 'TND'
                 })).filter(item => item.name || item.description)
             };
         }
@@ -600,13 +658,23 @@
             } else {
                 services.forEach(addServiceEntry);
             }
+
+            const chambers = Array.isArray(metadata.chambers) ? metadata.chambers : [];
+            document.getElementById('chambersList').innerHTML = '';
+            if (chambers.length === 0) {
+                addChamberEntry();
+            } else {
+                chambers.forEach(addChamberEntry);
+            }
         }
 
         function renderServicesBadges(metadata) {
             const services = Array.isArray(metadata.services) ? metadata.services : [];
-            if (services.length === 0) return '';
-            const badges = services.map(s => `<span class="service-badge">🏷️ ${escapeHtml(s.name)}</span>`).join('');
-            return `<div class="services-row">${badges}</div>`;
+            const chambers = Array.isArray(metadata.chambers) ? metadata.chambers : [];
+            if (services.length === 0 && chambers.length === 0) return '';
+            const sBadges = services.map(s => `<span class="service-badge">🏷️ ${escapeHtml(s.name)}</span>`).join('');
+            const cBadges = chambers.map(c => `<span class="chamber-badge">🛏️ ${escapeHtml(c.name)}</span>`).join('');
+            return `<div class="services-row">${sBadges}${cBadges}</div>`;
         }
 
         function safeJsonParse(value) {

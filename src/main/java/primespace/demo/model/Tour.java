@@ -67,6 +67,10 @@ public class Tour {
     @JsonIgnore
     private List<TourEvent> events = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Chamber> chambers = new ArrayList<>();
+
     public Tour() {
     }
 
@@ -165,5 +169,13 @@ public class Tour {
 
     public void setMetadataJson(String metadataJson) {
         this.metadataJson = metadataJson;
+    }
+
+    public List<Chamber> getChambers() {
+        return chambers;
+    }
+
+    public void setChambers(List<Chamber> chambers) {
+        this.chambers = chambers;
     }
 }
