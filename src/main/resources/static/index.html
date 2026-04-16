@@ -364,6 +364,14 @@
                 });
 
                 if (res.ok) {
+                    const savedTour = await res.json();
+                    const tourId = savedTour.id;
+                    // Sync chambers to the Chamber API
+                    await syncChambersToApi(tourId);
+                    // Sync items to the Items API
+                    await syncItemsToApi(tourId);
+                    // Sync services to the Services API
+                    await syncServicesToApi(tourId);
                     showToast(id ? 'Visite modifiée ✓' : 'Visite ajoutée ✓');
                     closeModal();
                     loadTours();
@@ -372,6 +380,87 @@
                 }
             } catch (err) {
                 showToast('Erreur réseau');
+            }
+        }
+
+        async function syncChambersToApi(tourId) {
+            try {
+                // Delete existing chambers
+                const existing = await fetch(`${API}/${tourId}/chambers`).then(r => r.json());
+                for (const ch of existing) {
+                    await fetch(`${API}/${tourId}/chambers/${ch.id}`, { method: 'DELETE' });
+                }
+                // Create new chambers from the form
+                const chambers = Array.from(document.querySelectorAll('.chamber-item')).map(item => ({
+                    name: item.querySelector('.chamber-name').value.trim(),
+                    imageUrl: item.querySelector('.chamber-image').value.trim(),
+                    description: item.querySelector('.chamber-description').value.trim(),
+                    price: item.querySelector('.chamber-price').value ? parseFloat(item.querySelector('.chamber-price').value) : null,
+                    currency: item.querySelector('.chamber-currency').value.trim() || 'TND'
+                })).filter(c => c.name || c.description);
+                for (const ch of chambers) {
+                    await fetch(`${API}/${tourId}/chambers`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ch)
+                    });
+                }
+            } catch (err) {
+                console.error('Chamber sync error:', err);
+            }
+        }
+
+        async function syncItemsToApi(tourId) {
+            try {
+                const existing = await fetch(`${API}/${tourId}/items`).then(r => r.json());
+                for (const item of existing) {
+                    await fetch(`${API}/${tourId}/items/${item.id}`, { method: 'DELETE' });
+                }
+                const items = Array.from(document.querySelectorAll('.hotspot-item')).map(item => ({
+                    name: item.querySelector('.hotspot-title').value.trim(),
+                    description: item.querySelector('.hotspot-description').value.trim(),
+                    externalUrl: item.querySelector('.hotspot-link').value.trim(),
+                    imageUrl: item.querySelector('.hotspot-cart-url').value.trim(),
+                    price: item.querySelector('.hotspot-price').value ? parseFloat(item.querySelector('.hotspot-price').value) : null,
+                    showAddToCart: item.querySelector('.hotspot-show-cart').checked,
+                    currency: 'TND'
+                })).filter(i => i.name || i.description);
+                for (const item of items) {
+                    await fetch(`${API}/${tourId}/items`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item)
+                    });
+                }
+            } catch (err) {
+                console.error('Items sync error:', err);
+            }
+        }
+
+        async function syncServicesToApi(tourId) {
+            try {
+                const existing = await fetch(`${API}/${tourId}/services`).then(r => r.json());
+                for (const svc of existing) {
+                    await fetch(`${API}/${tourId}/services/${svc.id}`, { method: 'DELETE' });
+                }
+                const services = Array.from(document.querySelectorAll('.service-item')).map(item => ({
+                    name: item.querySelector('.service-name').value.trim(),
+                    imageUrl: item.querySelector('.service-image').value.trim(),
+                    description: item.querySelector('.service-description').value.trim(),
+                    phone: item.querySelector('.service-phone').value.trim(),
+                    whatsapp: item.querySelector('.service-whatsapp').value.trim(),
+                    instagram: item.querySelector('.service-instagram').value.trim(),
+                    facebook: item.querySelector('.service-facebook').value.trim()
+                })).filter(s => s.name || s.description);
+                for (const svc of services) {
+                    await fetch(`${API}/${tourId}/services`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(svc)
+                    });
+                }
+            } catch (err) {
+                console.error('Services sync error:', err);
             }
         }
 
@@ -390,7 +479,44 @@
                 document.getElementById('latitude').value = tour.latitude ?? '';
                 document.getElementById('longitude').value = tour.longitude ?? '';
                 document.getElementById('location').value = tour.location || '';
-                populateDynamicFields(safeJsonParse(tour.metadataJson));
+
+                const metadata = safeJsonParse(tour.metadataJson);
+
+                // Load chambers from API (preferred) or fallback to metadataJson
+                try {
+                    const chambersRes = await fetch(`${API}/${id}/chambers`);
+                    const apiChambers = await chambersRes.json();
+                    if (Array.isArray(apiChambers) && apiChambers.length > 0) {
+                        metadata.chambers = apiChambers;
+                    }
+                } catch (e) { /* fallback to metadataJson chambers */ }
+
+                // Load items from API (preferred) or fallback to metadataJson
+                try {
+                    const itemsRes = await fetch(`${API}/${id}/items`);
+                    const apiItems = await itemsRes.json();
+                    if (Array.isArray(apiItems) && apiItems.length > 0) {
+                        metadata.hotspots = apiItems.map(item => ({
+                            title: item.name || '',
+                            link: item.externalUrl || '',
+                            description: item.description || '',
+                            cartUrl: item.imageUrl || '',
+                            price: item.price != null ? String(item.price) : '',
+                            showAddToCart: item.showAddToCart !== false
+                        }));
+                    }
+                } catch (e) { /* fallback to metadataJson */ }
+
+                // Load services from API (preferred) or fallback to metadataJson
+                try {
+                    const servicesRes = await fetch(`${API}/${id}/services`);
+                    const apiServices = await servicesRes.json();
+                    if (Array.isArray(apiServices) && apiServices.length > 0) {
+                        metadata.services = apiServices;
+                    }
+                } catch (e) { /* fallback to metadataJson */ }
+
+                populateDynamicFields(metadata);
                 handleCategoryChange();
                 document.getElementById('modalTitle').textContent = 'Modifier la visite';
                 document.getElementById('submitBtn').textContent = 'Enregistrer';
@@ -548,8 +674,15 @@
                         <input type="text" class="chamber-name" placeholder="Ex: Suite Deluxe" value="${escapeAttr(chamber.name || '')}">
                     </div>
                     <div class="form-group">
-                        <label>Image URL</label>
-                        <input type="url" class="chamber-image" placeholder="https://..." value="${escapeAttr(chamber.imageUrl || '')}">
+                        <label>Image</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="url" class="chamber-image" placeholder="https://..." value="${escapeAttr(chamber.imageUrl || '')}" style="flex:1;">
+                            <label class="btn-sm btn-edit" style="cursor:pointer;white-space:nowrap;">
+                                📷 Upload
+                                <input type="file" accept="image/*" style="display:none;" onchange="uploadChamberImage(this)">
+                            </label>
+                        </div>
+                        ${chamber.imageUrl ? `<img src="${escapeAttr(chamber.imageUrl)}" class="chamber-preview" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-top:6px;">` : `<img class="chamber-preview" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-top:6px;display:none;">`}
                     </div>
                 </div>
                 <div class="form-group">
@@ -569,6 +702,30 @@
                 <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
             `;
             container.appendChild(item);
+        }
+
+        async function uploadChamberImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const chamberItem = input.closest('.chamber-item');
+            const imageInput = chamberItem.querySelector('.chamber-image');
+            const preview = chamberItem.querySelector('.chamber-preview');
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.url) {
+                    imageInput.value = data.url;
+                    preview.src = data.url;
+                    preview.style.display = 'block';
+                    showToast('Image uploadée ✓');
+                } else {
+                    showToast('Erreur upload: ' + (data.error || 'Inconnu'));
+                }
+            } catch (err) {
+                showToast('Erreur upload image');
+            }
         }
 
         function resetDynamicFields() {
