@@ -49,6 +49,9 @@ public class Tour {
     @Column(name = "metadata_json", columnDefinition = "TEXT")
     private String metadataJson;
 
+    @Column(nullable = false)
+    private Boolean enabled = true;
+
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TourTag> tags = new ArrayList<>();
@@ -179,5 +182,13 @@ public class Tour {
 
     public void setChambers(List<Chamber> chambers) {
         this.chambers = chambers;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

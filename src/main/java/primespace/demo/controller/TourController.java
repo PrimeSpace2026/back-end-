@@ -1,6 +1,5 @@
 package primespace.demo.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -44,6 +43,7 @@ public class TourController {
     @GetMapping("/{id}")
     public ResponseEntity<Tour> getTourById(@PathVariable Long id) {
         return tourRepository.findById(id)
+                .filter(t -> Boolean.TRUE.equals(t.getEnabled()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -68,6 +68,7 @@ public class TourController {
                         if (tourDetails.getLongitude() != null) tour.setLongitude(tourDetails.getLongitude());
                         if (tourDetails.getLocation() != null) tour.setLocation(tourDetails.getLocation());
                         if (tourDetails.getMetadataJson() != null) tour.setMetadataJson(tourDetails.getMetadataJson());
+                        if (tourDetails.getEnabled() != null) tour.setEnabled(tourDetails.getEnabled());
                         return ResponseEntity.ok((Object) tourRepository.save(tour));
                     })
                     .orElse(ResponseEntity.notFound().build());
@@ -89,6 +90,18 @@ public class TourController {
                 .map(tour -> {
                     tourRepository.delete(tour);
                     return ResponseEntity.ok().<Void>build();
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/enabled")
+    public ResponseEntity<?> setEnabled(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        Boolean enabled = body.get("enabled");
+        if (enabled == null) return ResponseEntity.badRequest().body(Map.of("error", "missing 'enabled' field"));
+        return tourRepository.findById(id)
+                .map(tour -> {
+                    tour.setEnabled(enabled);
+                    return ResponseEntity.ok((Object) tourRepository.save(tour));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

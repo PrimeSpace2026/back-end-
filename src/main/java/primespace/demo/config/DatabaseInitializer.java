@@ -59,6 +59,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN metadata_json TYPE TEXT"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN name TYPE VARCHAR(500)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN category TYPE VARCHAR(200)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT TRUE"); } catch (Exception ignored) {}
 
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS tour_item (
