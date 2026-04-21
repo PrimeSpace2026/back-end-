@@ -31,12 +31,12 @@ public class Tour {
     @Column(length = 200)
     private String category;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     private Double surface;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String tourUrl;
 
     private Double latitude;

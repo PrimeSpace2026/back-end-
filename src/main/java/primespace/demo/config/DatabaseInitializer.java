@@ -52,10 +52,11 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE tour ADD COLUMN IF NOT EXISTS metadata_json TEXT"); } catch (Exception ignored) {}
 
         // Widen URL columns if table already existed with smaller limits
-        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN image_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
-        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN tour_url TYPE VARCHAR(2000)"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN image_url TYPE TEXT"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN tour_url TYPE TEXT"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN location TYPE TEXT"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN description TYPE TEXT"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN metadata_json TYPE TEXT"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN name TYPE VARCHAR(500)"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE tour ALTER COLUMN category TYPE VARCHAR(200)"); } catch (Exception ignored) {}
 
