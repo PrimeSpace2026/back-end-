@@ -22,11 +22,13 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 500)
     private String name;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(length = 200)
     private String category;
 
     @Column(length = 2000)
@@ -41,7 +43,7 @@ public class Tour {
 
     private Double longitude;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String location;
 
     @Column(name = "metadata_json", columnDefinition = "TEXT")
