@@ -54,22 +54,33 @@ public class TourController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Tour> updateTour(@PathVariable Long id, @RequestBody Tour tourDetails) {
-        return tourRepository.findById(id)
-                .map(tour -> {
-                    tour.setName(tourDetails.getName());
-                    tour.setDescription(tourDetails.getDescription());
-                    tour.setCategory(tourDetails.getCategory());
-                    tour.setImageUrl(tourDetails.getImageUrl());
-                    tour.setSurface(tourDetails.getSurface());
-                    tour.setTourUrl(tourDetails.getTourUrl());
-                    tour.setLatitude(tourDetails.getLatitude());
-                    tour.setLongitude(tourDetails.getLongitude());
-                    tour.setLocation(tourDetails.getLocation());
-                    tour.setMetadataJson(tourDetails.getMetadataJson());
-                    return ResponseEntity.ok(tourRepository.save(tour));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> updateTour(@PathVariable Long id, @RequestBody Tour tourDetails) {
+        try {
+            return tourRepository.findById(id)
+                    .map(tour -> {
+                        if (tourDetails.getName() != null) tour.setName(tourDetails.getName());
+                        if (tourDetails.getDescription() != null) tour.setDescription(tourDetails.getDescription());
+                        if (tourDetails.getCategory() != null) tour.setCategory(tourDetails.getCategory());
+                        if (tourDetails.getImageUrl() != null) tour.setImageUrl(tourDetails.getImageUrl());
+                        if (tourDetails.getSurface() != null) tour.setSurface(tourDetails.getSurface());
+                        if (tourDetails.getTourUrl() != null) tour.setTourUrl(tourDetails.getTourUrl());
+                        if (tourDetails.getLatitude() != null) tour.setLatitude(tourDetails.getLatitude());
+                        if (tourDetails.getLongitude() != null) tour.setLongitude(tourDetails.getLongitude());
+                        if (tourDetails.getLocation() != null) tour.setLocation(tourDetails.getLocation());
+                        if (tourDetails.getMetadataJson() != null) tour.setMetadataJson(tourDetails.getMetadataJson());
+                        return ResponseEntity.ok((Object) tourRepository.save(tour));
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("updateTour failed for id={}", id, e);
+            Throwable root = e;
+            while (root.getCause() != null) root = root.getCause();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", e.getClass().getSimpleName(),
+                    "message", String.valueOf(e.getMessage()),
+                    "rootCause", root.getClass().getSimpleName() + ": " + root.getMessage()
+            ));
+        }
     }
 
     @DeleteMapping("/{id}")
