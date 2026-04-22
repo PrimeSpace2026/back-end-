@@ -46,6 +46,9 @@ public class TourService {
     @Column(length = 500)
     private String facebook;
 
+    @Column(length = 1000)
+    private String link;
+
     private String tagSid;
 
     @Column(length = 100)
@@ -96,6 +99,9 @@ public class TourService {
 
     public String getFacebook() { return facebook; }
     public void setFacebook(String facebook) { this.facebook = facebook; }
+
+    public String getLink() { return link; }
+    public void setLink(String link) { this.link = link; }
 
     public String getTagSid() { return tagSid; }
     public void setTagSid(String tagSid) { this.tagSid = tagSid; }

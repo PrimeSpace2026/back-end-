@@ -49,6 +49,7 @@ public class TourServiceController {
                     svc.setWhatsapp(details.getWhatsapp());
                     svc.setInstagram(details.getInstagram());
                     svc.setFacebook(details.getFacebook());
+                    svc.setLink(details.getLink());
                     svc.setTagSid(details.getTagSid());
                     svc.setCoordinates(details.getCoordinates());
                     return ResponseEntity.ok(tourServiceRepository.save(svc));
