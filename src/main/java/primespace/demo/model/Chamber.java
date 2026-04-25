@@ -48,6 +48,8 @@ public class Chamber {
     @Column(length = 2000)
     private String bookingUrl;
 
+    private Boolean bookingEnabled;
+
     public Chamber() {
     }
 
@@ -93,4 +95,7 @@ public class Chamber {
 
     public String getBookingUrl() { return bookingUrl; }
     public void setBookingUrl(String bookingUrl) { this.bookingUrl = bookingUrl; }
+
+    public Boolean getBookingEnabled() { return bookingEnabled; }
+    public void setBookingEnabled(Boolean bookingEnabled) { this.bookingEnabled = bookingEnabled; }
 }

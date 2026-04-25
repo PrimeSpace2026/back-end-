@@ -52,6 +52,12 @@ public class Tour {
     @Column(nullable = false)
     private Boolean enabled = true;
 
+    @Column(name = "book_now_url", length = 2000)
+    private String bookNowUrl;
+
+    @Column(name = "book_now_enabled")
+    private Boolean bookNowEnabled;
+
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TourTag> tags = new ArrayList<>();
@@ -190,5 +196,21 @@ public class Tour {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getBookNowUrl() {
+        return bookNowUrl;
+    }
+
+    public void setBookNowUrl(String bookNowUrl) {
+        this.bookNowUrl = bookNowUrl;
+    }
+
+    public Boolean getBookNowEnabled() {
+        return bookNowEnabled;
+    }
+
+    public void setBookNowEnabled(Boolean bookNowEnabled) {
+        this.bookNowEnabled = bookNowEnabled;
     }
 }

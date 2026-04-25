@@ -69,6 +69,8 @@ public class TourController {
                         if (tourDetails.getLocation() != null) tour.setLocation(tourDetails.getLocation());
                         if (tourDetails.getMetadataJson() != null) tour.setMetadataJson(tourDetails.getMetadataJson());
                         if (tourDetails.getEnabled() != null) tour.setEnabled(tourDetails.getEnabled());
+                        if (tourDetails.getBookNowUrl() != null) tour.setBookNowUrl(tourDetails.getBookNowUrl());
+                        if (tourDetails.getBookNowEnabled() != null) tour.setBookNowEnabled(tourDetails.getBookNowEnabled());
                         return ResponseEntity.ok((Object) tourRepository.save(tour));
                     })
                     .orElse(ResponseEntity.notFound().build());

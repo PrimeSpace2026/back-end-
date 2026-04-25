@@ -49,6 +49,8 @@ public class ChamberController {
                     ch.setCurrency(details.getCurrency());
                     ch.setTagSid(details.getTagSid());
                     ch.setCoordinates(details.getCoordinates());
+                    ch.setBookingUrl(details.getBookingUrl());
+                    ch.setBookingEnabled(details.getBookingEnabled());
                     return ResponseEntity.ok(chamberRepository.save(ch));
                 })
                 .orElse(ResponseEntity.notFound().build());
