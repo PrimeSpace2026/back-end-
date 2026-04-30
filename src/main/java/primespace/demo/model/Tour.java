@@ -82,6 +82,10 @@ public class Tour {
     @JsonIgnore
     private List<Chamber> chambers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<VideoScreen> videoScreens = new ArrayList<>();
+
     public Tour() {
     }
 
