@@ -176,6 +176,10 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE staged_object ADD COLUMN IF NOT EXISTS local_offset_y DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE staged_object ADD COLUMN IF NOT EXISTS local_rotation_y DOUBLE PRECISION"); } catch (Exception ignored) {}
 
+        // Video screen icon type
+        try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS icon_type VARCHAR(50) DEFAULT 'youtube'"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS visibility_range DOUBLE PRECISION DEFAULT 8"); } catch (Exception ignored) {}
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }

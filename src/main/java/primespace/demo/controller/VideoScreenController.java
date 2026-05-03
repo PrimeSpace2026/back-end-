@@ -32,6 +32,7 @@ public class VideoScreenController {
 
     @PostMapping
     public VideoScreen createVideoScreen(@PathVariable Long tourId, @RequestBody VideoScreen screen) {
+        screen.setId(null);
         screen.setTourId(tourId);
         return videoScreenRepository.save(screen);
     }
@@ -52,6 +53,8 @@ public class VideoScreenController {
                     s.setRotZ(details.getRotZ());
                     s.setWidth(details.getWidth());
                     s.setHeight(details.getHeight());
+                    s.setIconType(details.getIconType());
+                    s.setVisibilityRange(details.getVisibilityRange());
                     return ResponseEntity.ok(videoScreenRepository.save(s));
                 })
                 .orElse(ResponseEntity.notFound().build());

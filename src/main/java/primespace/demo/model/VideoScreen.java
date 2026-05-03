@@ -47,6 +47,14 @@ public class VideoScreen {
     private Double width;
     private Double height;
 
+    // Icon type for the 3D tag (youtube, play, film, tv, live)
+    @Column(name = "icon_type")
+    private String iconType;
+
+    // Max distance (meters) at which the screen is visible to visitors
+    @Column(name = "visibility_range")
+    private Double visibilityRange;
+
     public VideoScreen() {}
 
     public Long getId() { return id; }
@@ -87,4 +95,10 @@ public class VideoScreen {
 
     public Double getHeight() { return height; }
     public void setHeight(Double height) { this.height = height; }
+
+    public String getIconType() { return iconType; }
+    public void setIconType(String iconType) { this.iconType = iconType; }
+
+    public Double getVisibilityRange() { return visibilityRange; }
+    public void setVisibilityRange(Double visibilityRange) { this.visibilityRange = visibilityRange; }
 }
