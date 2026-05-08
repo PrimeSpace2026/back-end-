@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matterport 3D Avatar Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: #fff; }
+        
+        #showcase-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #showcase {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        #controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.85);
+            padding: 16px;
+            border-radius: 12px;
+            z-index: 1000;
+            min-width: 220px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #controls h3 {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #00d4ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #controls button {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        
+        #controls button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        
+        #controls button:active {
+            transform: translateY(0);
+        }
+        
+        #status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+        
+        #status .label { color: #00d4ff; font-weight: bold; }
+        #status .value { color: #eee; }
+        
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p>Connecting to Matterport SDK...</p>
+</div>
+
+<!-- Matterport Showcase Iframe -->
+<div id="showcase-container">
+    <iframe
+        id="showcase"
+        allow="xr-spatial-tracking"
+        allowfullscreen
+    ></iframe>
+</div>
+
+<!-- Avatar Controls Panel -->
+<div id="controls">
+    <h3>Avatar Guide</h3>
+    <button onclick="playIdle()">Play Idle Animation</button>
+    <button onclick="playWalk()">Play Walk Animation</button>
+    <button onclick="moveToPointA()">Move to Point A</button>
+    <button onclick="moveToPointB()">Move to Point B</button>
+    <button onclick="toggleFollowCamera()">Toggle Follow Camera</button>
+    <button onclick="toggleAvatarVisibility()">Show/Hide Avatar</button>
+</div>
+
+<!-- Status Display -->
+<div id="status">
+    <span class="label">Status:</span> <span class="value" id="status-text">Initializing...</span>
+</div>
+
+<!-- 
+    ============================================================
+    MATTERPORT BUNDLE SDK
+    Load the latest Matterport Showcase SDK bundle.
+    This provides the global MatterportViewer / mpSdk API.
+    ============================================================
+-->
+<script src="https://static.matterport.com/showcase-sdk/latest.js"></script>
+
+<!-- 
+    ============================================================
+    THREE.js (r152+) - Required for 3D avatar rendering
+    The Matterport SDK Scene system uses Three.js internally.
+    We load it separately to access GLTFLoader, AnimationMixer, etc.
+    ============================================================
+-->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ============================================================
+// CONFIGURATION - Replace these placeholders with your values
+// ============================================================
+const CONFIG = {
+    // Your Matterport SDK Key (get from developer.matterport.com)
+    SDK_KEY: 'b7uar4u57xdec0zw7dwygt7md',
+    
+    // The Matterport Model SID (from the model URL)
+    MODEL_SID: 'SxQL3iGyoDo',
+    
+    // URL to your GLB avatar file (must have Idle and Walking animations)
+    // Recommended: ReadyPlayerMe, Mixamo, or any humanoid GLB with animations
+    AVATAR_GLB_URL: 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb',
+    
+    // Initial avatar position in the Matterport space (x, y, z)
+    INITIAL_POSITION: { x: 0, y: 0, z: 0 },
+    
+    // Avatar scale (adjust based on your model size)
+    AVATAR_SCALE: 1.0,
+    
+    // Points for movement demo (set to actual sweep positions in your space)
+    POINT_A: { x: -2, y: 0, z: 1 },
+    POINT_B: { x: 2, y: 0, z: -1 },
+    
+    // Movement speed (units per second)
+    MOVE_SPEED: 1.5,
+    
+    // Whether the avatar should face the camera by default
+    FOLLOW_CAMERA: true
+};
+
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+let mpSdk = null;
+let avatarScene = null;        // Three.js scene node from Matterport
+let avatarModel = null;        // The loaded GLTF model
+let animationMixer = null;     // Three.js AnimationMixer
+let animations = {};           // Named animation clips { 'Idle': action, 'Walking': action }
+let currentAnimation = null;   // Currently playing animation name
+let followCamera = CONFIG.FOLLOW_CAMERA;
+let isMoving = false;
+let avatarVisible = true;
+let cameraPose = { position: { x: 0, y: 0, z: 0 } };
+let avatarPosition = { ...CONFIG.INITIAL_POSITION };
+let clock = new THREE.Clock();
+
+// ============================================================
+// 1. INITIALIZE MATTERPORT SDK
+// ============================================================
+async function initMatterport() {
+    setStatus('Loading Matterport Showcase...');
+    
+    const iframe = document.getElementById('showcase');
+    
+    // Set the showcase URL with your model and SDK key
+    iframe.src = `https://my.matterport.com/show?m=${CONFIG.MODEL_SID}&key=${CONFIG.SDK_KEY}&play=1&qs=1&applicationKey=${CONFIG.SDK_KEY}`;
+    
+    try {
+        // Connect to the SDK - waits for iframe to load
+        mpSdk = await window.MP_SDK.connect(iframe, CONFIG.SDK_KEY, '3.10');
+        
+        setStatus('SDK Connected. Loading avatar...');
+        console.log('[Avatar Guide] Matterport SDK connected successfully');
+        console.log('[Avatar Guide] SDK Version:', mpSdk.version);
+        
+        // Subscribe to camera pose updates (for follow behavior)
+        mpSdk.Camera.pose.subscribe(pose => {
+            cameraPose = pose;
+        });
+        
+        // Initialize the 3D avatar in the scene
+        await initAvatar();
+        
+        // Start the update loop
+        startUpdateLoop();
+        
+        // Hide loading overlay
+        document.getElementById('loading').classList.add('hidden');
+        setStatus('Avatar Guide ready!');
+        
+    } catch (error) {
+        console.error('[Avatar Guide] SDK connection failed:', error);
+        setStatus('Error: ' + error.message);
+    }
+}
+
+// ============================================================
+// 2. INITIALIZE 3D AVATAR IN MATTERPORT SCENE
+//    Uses mpSdk.Scene to inject Three.js objects into the space
+// ============================================================
+async function initAvatar() {
+    // Register a custom scene component for our avatar
+    const AvatarComponent = {
+        objectType: 'mp.obj3d',
+        inputs: {
+            visible: true
+        },
+        
+        onInit() {
+            // This runs when the component is created
+            const loader = new GLTFLoader();
+            
+            loader.load(
+                CONFIG.AVATAR_GLB_URL,
+                (gltf) => {
+                    avatarModel = gltf.scene;
+                    
+                    // Scale the avatar
+                    avatarModel.scale.setScalar(CONFIG.AVATAR_SCALE);
+                    
+                    // Enable shadows
+                    avatarModel.traverse(child => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    // Add to the Three.js scene via component's outputs
+                    this.outputs.objectRoot = avatarModel;
+                    
+                    // Set up animations
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        animationMixer = new THREE.AnimationMixer(avatarModel);
+                        
+                        gltf.animations.forEach(clip => {
+                            const action = animationMixer.clipAction(clip);
+                            animations[clip.name] = action;
+                            console.log(`[Avatar Guide] Animation found: "${clip.name}"`);
+                        });
+                        
+                        // Auto-play idle animation
+                        playAnimationByName('Idle');
+                    }
+                    
+                    console.log('[Avatar Guide] Avatar loaded successfully');
+                    setStatus('Avatar loaded - Animations: ' + Object.keys(animations).join(', '));
+                },
+                (progress) => {
+                    const pct = Math.round((progress.loaded / progress.total) * 100);
+                    setStatus(`Loading avatar: ${pct}%`);
+                },
+                (error) => {
+                    console.error('[Avatar Guide] Failed to load avatar:', error);
+                    setStatus('Failed to load avatar GLB');
+                }
+            );
+        },
+        
+        onTick(delta) {
+            // Per-frame update - animation mixer and follow camera
+            if (animationMixer) {
+                animationMixer.update(delta / 1000); // delta is in ms
+            }
+            
+            // Follow camera rotation
+            if (followCamera && avatarModel) {
+                rotateToFaceCamera();
+            }
+        },
+        
+        onDestroy() {
+            if (animationMixer) animationMixer.stopAllAction();
+        }
+    };
+    
+    // Method 2: Direct Three.js injection via Scene nodes
+    // This approach gives more control and works with the latest SDK
+    try {
+        // Create a scene node
+        const [sceneObject] = await mpSdk.Scene.createObjects(1);
+        
+        // Create a node for our avatar
+        const avatarNode = sceneObject.addNode();
+        
+        // Position the avatar
+        avatarNode.position.set(
+            CONFIG.INITIAL_POSITION.x,
+            CONFIG.INITIAL_POSITION.y,
+            CONFIG.INITIAL_POSITION.z
+        );
+        
+        // Add a Three.js component to render our GLB
+        const gltfComponent = avatarNode.addComponent('mp.gltfLoader', {
+            url: CONFIG.AVATAR_GLB_URL,
+            localScale: { x: CONFIG.AVATAR_SCALE, y: CONFIG.AVATAR_SCALE, z: CONFIG.AVATAR_SCALE }
+        });
+        
+        // Store reference for position/rotation updates
+        avatarScene = {
+            sceneObject,
+            node: avatarNode,
+            component: gltfComponent
+        };
+        
+        // Start the scene object
+        sceneObject.start();
+        
+        // Wait for the model to load, then set up animations
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Alternative: Load with GLTFLoader for full animation control
+        await loadAvatarWithAnimations();
+        
+        console.log('[Avatar Guide] Scene object created and started');
+        
+    } catch (e) {
+        console.warn('[Avatar Guide] Scene.createObjects not available, trying alternative approach:', e);
+        await loadAvatarAlternative();
+    }
+}
+
+// ============================================================
+// 3. LOAD AVATAR WITH FULL ANIMATION SUPPORT
+//    Uses GLTFLoader directly + injects into Matterport's Three.js scene
+// ============================================================
+async function loadAvatarWithAnimations() {
+    return new Promise((resolve, reject) => {
+        const loader = new GLTFLoader();
+        
+        loader.load(
+            CONFIG.AVATAR_GLB_URL,
+            (gltf) => {
+                avatarModel = gltf.scene;
+                
+                // Scale
+                avatarModel.scale.setScalar(CONFIG.AVATAR_SCALE);
+                
+                // Position
+                avatarModel.position.set(
+                    CONFIG.INITIAL_POSITION.x,
+                    CONFIG.INITIAL_POSITION.y,
+                    CONFIG.INITIAL_POSITION.z
+                );
+                
+                // Enable shadows on all meshes
+                avatarModel.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        // Ensure material is visible
+                        if (child.material) {
+                            child.material.side = THREE.DoubleSide;
+                        }
+                    }
+                });
+                
+                // Set up AnimationMixer
+                if (gltf.animations && gltf.animations.length > 0) {
+                    animationMixer = new THREE.AnimationMixer(avatarModel);
+                    
+                    gltf.animations.forEach(clip => {
+                        const action = animationMixer.clipAction(clip);
+                        animations[clip.name] = action;
+                        console.log(`[Avatar Guide] Animation: "${clip.name}" (${clip.duration.toFixed(2)}s)`);
+                    });
+                    
+                    // Play idle by default
+                    playAnimationByName('Idle');
+                } else {
+                    console.warn('[Avatar Guide] No animations found in GLB file');
+                }
+                
+                setStatus(`Avatar ready! Animations: ${Object.keys(animations).join(', ') || 'none'}`);
+                resolve(gltf);
+            },
+            undefined,
+            (error) => {
+                console.error('[Avatar Guide] GLB load error:', error);
+                reject(error);
+            }
+        );
+    });
+}
+
+// ============================================================
+// 4. ALTERNATIVE LOADING (for older SDK versions)
+//    Injects avatar using mpSdk.Renderer.takeoverThreeRenderer
+// ============================================================
+async function loadAvatarAlternative() {
+    try {
+        // Some SDK versions expose the Three.js renderer directly
+        const renderer = await mpSdk.Renderer;
+        if (renderer && renderer.takeoverThreeRenderer) {
+            const threeContext = await renderer.takeoverThreeRenderer();
+            // Add avatar to the existing Three.js scene
+            if (avatarModel) {
+                threeContext.scene.add(avatarModel);
+            }
+        }
+    } catch (e) {
+        console.log('[Avatar Guide] Using Scene API method only');
+    }
+}
+
+// ============================================================
+// 5. AVATAR ROTATION - FOLLOW CAMERA (Look-At Behavior)
+//    Makes the avatar always face the user's current camera position.
+//    This creates the "guide looking at visitor" effect.
+// ============================================================
+function rotateToFaceCamera() {
+    if (!avatarModel || !cameraPose.position) return;
+    
+    // Get camera position in world space
+    const cameraPos = new THREE.Vector3(
+        cameraPose.position.x,
+        cameraPose.position.y,
+        cameraPose.position.z
+    );
+    
+    // Get avatar's current position
+    const avatarPos = new THREE.Vector3(
+        avatarPosition.x,
+        avatarPosition.y,
+        avatarPosition.z
+    );
+    
+    // Calculate direction from avatar to camera (on XZ plane only for natural rotation)
+    const direction = new THREE.Vector3();
+    direction.subVectors(cameraPos, avatarPos);
+    direction.y = 0; // Keep rotation on Y axis only (no tilting)
+    direction.normalize();
+    
+    // Calculate target rotation angle
+    const targetAngle = Math.atan2(direction.x, direction.z);
+    
+    // Smooth rotation (lerp) for natural movement
+    const currentRotation = avatarModel.rotation.y;
+    let angleDiff = targetAngle - currentRotation;
+    
+    // Normalize angle difference to [-PI, PI]
+    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+    
+    // Smooth interpolation (adjust 0.05 for faster/slower rotation)
+    avatarModel.rotation.y += angleDiff * 0.05;
+    
+    // Also update the scene node rotation if using Scene API
+    if (avatarScene && avatarScene.node) {
+        avatarScene.node.rotation.set(0, avatarModel.rotation.y * (180 / Math.PI), 0);
+    }
+}
+
+// ============================================================
+// 6. AVATAR MOVEMENT - Smooth transition from Point A to Point B
+//    Called when user navigates to a new sweep or manually triggered.
+// ============================================================
+let moveTarget = null;
+let moveStartPos = null;
+let moveProgress = 0;
+
+function moveAvatarTo(targetPos, onComplete) {
+    if (isMoving) return;
+    
+    isMoving = true;
+    moveTarget = { ...targetPos };
+    moveStartPos = { ...avatarPosition };
+    moveProgress = 0;
+    
+    // Switch to walking animation
+    playAnimationByName('Walking');
+    
+    setStatus(`Moving avatar to (${targetPos.x.toFixed(1)}, ${targetPos.y.toFixed(1)}, ${targetPos.z.toFixed(1)})`);
+    
+    // Store callback
+    moveAvatarTo._onComplete = onComplete;
+}
+
+function updateMovement(deltaTime) {
+    if (!isMoving || !moveTarget) return;
+    
+    // Calculate distance for speed-based movement
+    const dx = moveTarget.x - moveStartPos.x;
+    const dy = moveTarget.y - moveStartPos.y;
+    const dz = moveTarget.z - moveStartPos.z;
+    const totalDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    
+    if (totalDistance < 0.01) {
+        isMoving = false;
+        playAnimationByName('Idle');
+        return;
+    }
+    
+    // Progress based on speed and distance
+    const step = (CONFIG.MOVE_SPEED * deltaTime) / totalDistance;
+    moveProgress = Math.min(1.0, moveProgress + step);
+    
+    // Smooth easing (ease-in-out)
+    const t = moveProgress < 0.5
+        ? 2 * moveProgress * moveProgress
+        : 1 - Math.pow(-2 * moveProgress + 2, 2) / 2;
+    
+    // Interpolate position
+    avatarPosition.x = moveStartPos.x + dx * t;
+    avatarPosition.y = moveStartPos.y + dy * t;
+    avatarPosition.z = moveStartPos.z + dz * t;
+    
+    // Update Three.js model position
+    if (avatarModel) {
+        avatarModel.position.set(avatarPosition.x, avatarPosition.y, avatarPosition.z);
+    }
+    
+    // Update Matterport scene node position
+    if (avatarScene && avatarScene.node) {
+        avatarScene.node.position.set(avatarPosition.x, avatarPosition.y, avatarPosition.z);
+    }
+    
+    // Check if arrived
+    if (moveProgress >= 1.0) {
+        isMoving = false;
+        avatarPosition = { ...moveTarget };
+        playAnimationByName('Idle');
+        setStatus('Avatar arrived at destination');
+        
+        if (moveAvatarTo._onComplete) {
+            moveAvatarTo._onComplete();
+            moveAvatarTo._onComplete = null;
+        }
+    }
+}
+
+// ============================================================
+// 7. ANIMATION PLAYBACK
+//    Crossfades between animations for smooth transitions.
+// ============================================================
+function playAnimationByName(name) {
+    // Try exact name first, then case-insensitive search
+    let action = animations[name];
+    
+    if (!action) {
+        // Search case-insensitively and with partial matching
+        const key = Object.keys(animations).find(k => 
+            k.toLowerCase().includes(name.toLowerCase())
+        );
+        if (key) action = animations[key];
+    }
+    
+    if (!action) {
+        console.warn(`[Avatar Guide] Animation "${name}" not found. Available:`, Object.keys(animations));
+        return;
+    }
+    
+    if (currentAnimation === name) return;
+    
+    // Crossfade from current to new animation
+    const previousAction = currentAnimation ? animations[currentAnimation] : null;
+    
+    if (previousAction) {
+        // Smooth crossfade over 0.4 seconds
+        previousAction.fadeOut(0.4);
+    }
+    
+    action.reset();
+    action.fadeIn(0.4);
+    action.play();
+    
+    currentAnimation = name;
+    console.log(`[Avatar Guide] Playing animation: ${name}`);
+}
+
+// ============================================================
+// 8. UPDATE LOOP
+//    Runs every frame to update animations, movement, and rotation.
+// ============================================================
+function startUpdateLoop() {
+    const animate = () => {
+        requestAnimationFrame(animate);
+        
+        const delta = clock.getDelta();
+        
+        // Update animation mixer
+        if (animationMixer) {
+            animationMixer.update(delta);
+        }
+        
+        // Update movement
+        updateMovement(delta);
+        
+        // Update follow-camera rotation
+        if (followCamera && avatarModel && !isMoving) {
+            rotateToFaceCamera();
+        }
+    };
+    
+    animate();
+}
+
+// ============================================================
+// 9. POSITIONING HELPER
+//    Place the avatar at specific Matterport coordinates.
+//    Coordinates match the sweep/mattertag position system.
+// ============================================================
+function setAvatarPosition(x, y, z) {
+    avatarPosition = { x, y, z };
+    
+    if (avatarModel) {
+        avatarModel.position.set(x, y, z);
+    }
+    
+    if (avatarScene && avatarScene.node) {
+        avatarScene.node.position.set(x, y, z);
+    }
+    
+    console.log(`[Avatar Guide] Position set to (${x}, ${y}, ${z})`);
+}
+
+// ============================================================
+// 10. SWEEP-BASED MOVEMENT (Auto-move when user changes sweep)
+//     Listens to sweep changes and moves avatar to predefined positions.
+// ============================================================
+async function setupSweepFollowing() {
+    if (!mpSdk) return;
+    
+    // Define avatar positions per sweep (customize per your model)
+    const sweepPositions = {
+        // 'sweepId1': { x: 0, y: 0, z: 0 },
+        // 'sweepId2': { x: 2, y: 0, z: -1 },
+        // Add your sweep IDs and corresponding avatar positions
+    };
+    
+    // Subscribe to sweep changes
+    mpSdk.Sweep.current.subscribe(currentSweep => {
+        if (currentSweep.sid && sweepPositions[currentSweep.sid]) {
+            const targetPos = sweepPositions[currentSweep.sid];
+            moveAvatarTo(targetPos);
+        }
+    });
+    
+    console.log('[Avatar Guide] Sweep-based movement enabled');
+}
+
+// ============================================================
+// CONTROL FUNCTIONS (called by UI buttons)
+// ============================================================
+
+// Expose to global scope for button onclick handlers
+window.playIdle = function() {
+    playAnimationByName('Idle');
+    setStatus('Playing: Idle');
+};
+
+window.playWalk = function() {
+    playAnimationByName('Walking');
+    setStatus('Playing: Walking');
+};
+
+window.moveToPointA = function() {
+    moveAvatarTo(CONFIG.POINT_A, () => {
+        setStatus('Arrived at Point A');
+    });
+};
+
+window.moveToPointB = function() {
+    moveAvatarTo(CONFIG.POINT_B, () => {
+        setStatus('Arrived at Point B');
+    });
+};
+
+window.toggleFollowCamera = function() {
+    followCamera = !followCamera;
+    setStatus(`Follow camera: ${followCamera ? 'ON' : 'OFF'}`);
+};
+
+window.toggleAvatarVisibility = function() {
+    avatarVisible = !avatarVisible;
+    if (avatarModel) {
+        avatarModel.visible = avatarVisible;
+    }
+    setStatus(`Avatar: ${avatarVisible ? 'Visible' : 'Hidden'}`);
+};
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function setStatus(text) {
+    const el = document.getElementById('status-text');
+    if (el) el.textContent = text;
+    console.log('[Avatar Guide]', text);
+}
+
+// ============================================================
+// BOOTSTRAP - Start everything
+// ============================================================
+initMatterport().catch(err => {
+    console.error('[Avatar Guide] Fatal error:', err);
+    setStatus('Fatal error: ' + err.message);
+});
+
+</script>
+
+<!--
+============================================================
+USAGE INSTRUCTIONS:
+============================================================
+
+1. SETUP:
+   - Replace YOUR_SDK_KEY_HERE with your Matterport SDK key
+     (Get one at https://developer.matterport.com)
+   - Replace YOUR_MODEL_SID_HERE with your model's SID
+     (Found in the URL: my.matterport.com/show/?m=MODEL_SID)
+   - Replace YOUR_AVATAR_GLB_URL_HERE with a URL to your .glb avatar file
+
+2. AVATAR GLB REQUIREMENTS:
+   - Must be a humanoid GLB/GLTF file
+   - Should contain at minimum an "Idle" animation
+   - "Walking" animation is needed for movement
+   - Recommended sources:
+     * ReadyPlayerMe (https://readyplayer.me) - free avatars with animations
+     * Mixamo (https://www.mixamo.com) - free animations for any character
+     * Ready-to-use: https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb
+
+3. GETTING COORDINATES:
+   - Use mpSdk.Mattertag.getData() to get mattertag positions
+   - Use mpSdk.Sweep.data to get sweep positions
+   - Open browser console and run:
+     mpSdk.Camera.pose.subscribe(p => console.log(p.position))
+   - Then navigate to where you want the avatar and note the XYZ
+
+4. ADDING SWEEP-BASED MOVEMENT:
+   - In setupSweepFollowing(), add entries to sweepPositions object
+   - Format: 'sweep_sid': { x: N, y: N, z: N }
+   - Get sweep SIDs from mpSdk.Sweep.data
+
+5. HOSTING:
+   - Must be served over HTTPS (Matterport SDK requirement)
+   - Can use: npx serve, VS Code Live Server, or any web server
+   - The GLB file URL must also be HTTPS and CORS-enabled
+
+6. REFERENCE BEHAVIOR (ceramichouses-4):
+   - Avatar stands in room, always faces visitor
+   - Plays idle animation when stationary
+   - Walks to new position when visitor moves to new sweep
+   - Smooth rotation tracking the camera
+============================================================
+-->
+
+</body>
+</html>
