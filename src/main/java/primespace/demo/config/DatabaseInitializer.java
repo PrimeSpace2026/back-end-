@@ -180,6 +180,26 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS icon_type VARCHAR(50) DEFAULT 'youtube'"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS visibility_range DOUBLE PRECISION DEFAULT 8"); } catch (Exception ignored) {}
 
+        // Custom tags (admin-placed tags with media)
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS custom_tag (
+                id BIGSERIAL PRIMARY KEY,
+                tour_id BIGINT NOT NULL,
+                label VARCHAR(500),
+                description TEXT,
+                media_type VARCHAR(50),
+                media_url TEXT,
+                icon_url TEXT,
+                color VARCHAR(20),
+                anchor_x DOUBLE PRECISION,
+                anchor_y DOUBLE PRECISION,
+                anchor_z DOUBLE PRECISION,
+                stem_height DOUBLE PRECISION DEFAULT 0.3,
+                floor_index INTEGER DEFAULT 0,
+                enabled BOOLEAN DEFAULT TRUE
+            )
+        """);
+
         } catch (Exception e) {
             System.err.println("WARNING: DatabaseInitializer failed (DB may be temporarily unavailable): " + e.getMessage());
         }
