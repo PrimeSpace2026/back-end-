@@ -17,6 +17,10 @@ public class WebConfig {
                         .allowedOriginPatterns("http://localhost:*", "https://virtual-tour-builder.vercel.app", "https://primespace.studio", "https://www.primespace.studio", "https://my.matterport.com")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
+                registry.addMapping("/uploads/**")
+                        .allowedOriginPatterns("*")
+                        .allowedMethods("GET")
+                        .allowedHeaders("*");
             }
         };
     }

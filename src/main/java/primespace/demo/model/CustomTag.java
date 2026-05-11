@@ -43,6 +43,9 @@ public class CustomTag {
     @Column(name = "icon_url", columnDefinition = "TEXT")
     private String iconUrl;
 
+    @Column(name = "icon_name")
+    private String iconName;
+
     private String color;
 
     @Column(name = "anchor_x")
@@ -56,6 +59,15 @@ public class CustomTag {
 
     @Column(name = "stem_height")
     private Double stemHeight;
+
+    @Column(name = "stem_dir_x")
+    private Double stemDirX;
+
+    @Column(name = "stem_dir_y")
+    private Double stemDirY;
+
+    @Column(name = "stem_dir_z")
+    private Double stemDirZ;
 
     @Column(name = "floor_index")
     private Integer floorIndex;
@@ -89,6 +101,9 @@ public class CustomTag {
     public String getIconUrl() { return iconUrl; }
     public void setIconUrl(String iconUrl) { this.iconUrl = iconUrl; }
 
+    public String getIconName() { return iconName; }
+    public void setIconName(String iconName) { this.iconName = iconName; }
+
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
 
@@ -103,6 +118,15 @@ public class CustomTag {
 
     public Double getStemHeight() { return stemHeight; }
     public void setStemHeight(Double stemHeight) { this.stemHeight = stemHeight; }
+
+    public Double getStemDirX() { return stemDirX; }
+    public void setStemDirX(Double stemDirX) { this.stemDirX = stemDirX; }
+
+    public Double getStemDirY() { return stemDirY; }
+    public void setStemDirY(Double stemDirY) { this.stemDirY = stemDirY; }
+
+    public Double getStemDirZ() { return stemDirZ; }
+    public void setStemDirZ(Double stemDirZ) { this.stemDirZ = stemDirZ; }
 
     public Integer getFloorIndex() { return floorIndex; }
     public void setFloorIndex(Integer floorIndex) { this.floorIndex = floorIndex; }

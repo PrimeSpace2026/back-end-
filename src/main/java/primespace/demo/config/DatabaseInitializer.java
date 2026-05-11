@@ -180,6 +180,12 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS icon_type VARCHAR(50) DEFAULT 'youtube'"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE video_screen ADD COLUMN IF NOT EXISTS visibility_range DOUBLE PRECISION DEFAULT 8"); } catch (Exception ignored) {}
 
+        // Add stem direction columns to custom_tag
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS stem_dir_x DOUBLE PRECISION"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS stem_dir_y DOUBLE PRECISION"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS stem_dir_z DOUBLE PRECISION"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS icon_name VARCHAR(100)"); } catch (Exception ignored) {}
+
         // Custom tags (admin-placed tags with media)
         jdbcTemplate.execute("""
             CREATE TABLE IF NOT EXISTS custom_tag (

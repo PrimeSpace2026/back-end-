@@ -149,6 +149,8 @@
                         <option value="Wellness">Wellness</option>
                         <option value="Bureaux">Bureaux</option>
                         <option value="Retail">Retail</option>
+                        <option value="Wedding venue">Wedding venue</option>
+                        <option value="Gym & Fitness">Gym & Fitness</option>
                     </select>
                     <small class="form-hint">Les champs ci-dessous s’adaptent automatiquement selon la catégorie choisie.</small>
                 </div>
@@ -254,6 +256,59 @@
                             <label for="consultationUrl">Lien de réservation</label>
                             <input type="url" id="consultationUrl" placeholder="https://...">
                         </div>
+                    </div>
+                </div>
+
+                <div id="weddingFields" class="dynamic-section">
+                    <h3>Informations Wedding Venue</h3>
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="weddingCapacity">Capacité (invités)</label>
+                            <input type="number" id="weddingCapacity" min="1" placeholder="Ex: 300">
+                        </div>
+                        <div class="form-group">
+                            <label for="weddingPriceRange">Fourchette de prix</label>
+                            <input type="text" id="weddingPriceRange" placeholder="Ex: 5000 - 15000 TND">
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="weddingParkingSpaces">Places de parking</label>
+                            <input type="number" id="weddingParkingSpaces" min="0" placeholder="Ex: 100">
+                        </div>
+                        <div class="form-group">
+                            <label for="weddingBookingUrl">Lien de réservation</label>
+                            <input type="url" id="weddingBookingUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Équipements de la salle</label>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Espace extérieur"> Espace extérieur</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Traiteur inclus"> Traiteur inclus</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Climatisation"> Climatisation</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Piste de danse"> Piste de danse</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Scène"> Scène</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Sonorisation"> Sonorisation</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Éclairage décoratif"> Éclairage décoratif</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Parking privé"> Parking privé</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Suite nuptiale"> Suite nuptiale</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="weddingAmenities" value="Vestiaire"> Vestiaire</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="section-head">
+                            <label>Prestataires de mariage</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addWeddingProvider()">+ Ajouter</button>
+                        </div>
+                        <div id="weddingProvidersList" class="hotspot-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="section-head">
+                            <label>Formules / Packages</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addWeddingPackage()">+ Ajouter</button>
+                        </div>
+                        <div id="weddingPackagesList" class="hotspot-list"></div>
                     </div>
                 </div>
 
@@ -572,6 +627,8 @@
                 document.getElementById('restaurantFields').classList.add('active');
             } else if (normalized === 'wellness' || normalized === 'bien-etre' || normalized === 'bien etre') {
                 document.getElementById('wellnessFields').classList.add('active');
+            } else if (normalized === 'wedding venue' || normalized === 'wedding') {
+                document.getElementById('weddingFields').classList.add('active');
             }
         }
 
@@ -617,6 +674,104 @@
                 </div>
                 <div class="toggle-row">
                     <label><input type="checkbox" class="hotspot-show-cart" ${cartChecked}> Afficher le bouton "Ajouter au panier"</label>
+                </div>
+                <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
+            `;
+            container.appendChild(item);
+        }
+
+        function addWeddingProvider(provider = {}) {
+            const container = document.getElementById('weddingProvidersList');
+            const item = document.createElement('div');
+            item.className = 'wedding-provider-item hotspot-item';
+            const categories = ['Salles des Fêtes','Voitures de Mariage','Notaires','Photographes','Transports','Coiffeurs Femme','Robes de Mariage','Costumes de Mariage','Coiffeurs Homme','Onemanshow','Bands','Troupes','Show','Artistes','DJ','Fleuriste','Pâtisserie','Décoration','Vidéaste','Maquillage','Traiteur','Animation enfants','Faire-part','Bijoux','Autre'];
+            const opts = categories.map(c => `<option value="${c}" ${provider.category === c ? 'selected' : ''}>${c}</option>`).join('');
+            item.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select class="wp-category"><option value="">Choisir</option>${opts}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom</label>
+                        <input type="text" class="wp-name" placeholder="Ex: Studio Photo Luxe" value="${escapeAttr(provider.name || '')}">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" class="wp-image" placeholder="https://..." value="${escapeAttr(provider.imageUrl || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Prix</label>
+                        <input type="text" class="wp-price" placeholder="Ex: 2000 TND" value="${escapeAttr(provider.price || '')}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="wp-description" placeholder="Décrivez ce prestataire...">${escapeHtml(provider.description || '')}</textarea>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Téléphone</label>
+                        <input type="tel" class="wp-phone" placeholder="+216 ..." value="${escapeAttr(provider.phone || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp</label>
+                        <input type="tel" class="wp-whatsapp" placeholder="+216 ..." value="${escapeAttr(provider.whatsapp || '')}">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <input type="url" class="wp-instagram" placeholder="https://instagram.com/..." value="${escapeAttr(provider.instagram || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Facebook</label>
+                        <input type="url" class="wp-facebook" placeholder="https://facebook.com/..." value="${escapeAttr(provider.facebook || '')}">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Site web</label>
+                        <input type="url" class="wp-website" placeholder="https://..." value="${escapeAttr(provider.website || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Tag SID (Matterport)</label>
+                        <input type="text" class="wp-tagsid" placeholder="Ex: tag-xxx" value="${escapeAttr(provider.tagSid || '')}">
+                    </div>
+                </div>
+                <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
+            `;
+            container.appendChild(item);
+        }
+
+        function addWeddingPackage(pkg = {}) {
+            const container = document.getElementById('weddingPackagesList');
+            const item = document.createElement('div');
+            item.className = 'wedding-package-item hotspot-item';
+            item.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Nom du package</label>
+                        <input type="text" class="wpkg-name" placeholder="Ex: Formule Prestige" value="${escapeAttr(pkg.name || '')}">
+                    </div>
+                    <div class="form-group">
+                        <label>Prix</label>
+                        <input type="text" class="wpkg-price" placeholder="Ex: 15000" value="${escapeAttr(pkg.price || '')}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Devise</label>
+                    <input type="text" class="wpkg-currency" placeholder="TND" value="${escapeAttr(pkg.currency || 'TND')}">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="wpkg-description" placeholder="Décrivez cette formule...">${escapeHtml(pkg.description || '')}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Inclus (une ligne par élément)</label>
+                    <textarea class="wpkg-features" placeholder="Salle pour 300 invités\nTraiteur 3 plats\nDJ + Sonorisation\n...">${escapeHtml((pkg.features || []).join('\n'))}</textarea>
                 </div>
                 <button type="button" class="btn-sm btn-delete" style="margin-top:8px" onclick="this.parentElement.remove()">Supprimer</button>
             `;
@@ -743,7 +898,14 @@
             document.getElementById('reservationUrl').value = '';
             document.getElementById('wellnessFocus').value = '';
             document.getElementById('consultationUrl').value = '';
+            document.getElementById('weddingCapacity').value = '';
+            document.getElementById('weddingPriceRange').value = '';
+            document.getElementById('weddingParkingSpaces').value = '';
+            document.getElementById('weddingBookingUrl').value = '';
             setCheckedValues('hotelAmenities', []);
+            setCheckedValues('weddingAmenities', []);
+            document.getElementById('weddingProvidersList').innerHTML = '';
+            document.getElementById('weddingPackagesList').innerHTML = '';
             document.getElementById('hotspotsList').innerHTML = '';
             addHotspot();
             document.getElementById('servicesList').innerHTML = '';
@@ -765,6 +927,31 @@
                 reservationUrl: document.getElementById('reservationUrl').value.trim(),
                 wellnessFocus: document.getElementById('wellnessFocus').value.trim(),
                 consultationUrl: document.getElementById('consultationUrl').value.trim(),
+                weddingCapacity: document.getElementById('weddingCapacity').value ? parseInt(document.getElementById('weddingCapacity').value, 10) : null,
+                weddingPriceRange: document.getElementById('weddingPriceRange').value.trim(),
+                weddingParkingSpaces: document.getElementById('weddingParkingSpaces').value ? parseInt(document.getElementById('weddingParkingSpaces').value, 10) : null,
+                weddingBookingUrl: document.getElementById('weddingBookingUrl').value.trim(),
+                weddingAmenities: getCheckedValues('weddingAmenities'),
+                weddingProviders: Array.from(document.querySelectorAll('.wedding-provider-item')).map(item => ({
+                    category: item.querySelector('.wp-category').value,
+                    name: item.querySelector('.wp-name').value.trim(),
+                    description: item.querySelector('.wp-description').value.trim(),
+                    imageUrl: item.querySelector('.wp-image').value.trim(),
+                    phone: item.querySelector('.wp-phone').value.trim(),
+                    whatsapp: item.querySelector('.wp-whatsapp').value.trim(),
+                    instagram: item.querySelector('.wp-instagram').value.trim(),
+                    facebook: item.querySelector('.wp-facebook').value.trim(),
+                    website: item.querySelector('.wp-website').value.trim(),
+                    price: item.querySelector('.wp-price').value.trim(),
+                    tagSid: item.querySelector('.wp-tagsid').value.trim()
+                })).filter(item => item.name),
+                weddingPackages: Array.from(document.querySelectorAll('.wedding-package-item')).map(item => ({
+                    name: item.querySelector('.wpkg-name').value.trim(),
+                    description: item.querySelector('.wpkg-description').value.trim(),
+                    price: item.querySelector('.wpkg-price').value.trim(),
+                    currency: item.querySelector('.wpkg-currency').value.trim() || 'TND',
+                    features: item.querySelector('.wpkg-features').value.split('\n').map(f => f.trim()).filter(Boolean)
+                })).filter(item => item.name),
                 hotspots: Array.from(document.querySelectorAll('.hotspot-item')).map(item => ({
                     title: item.querySelector('.hotspot-title').value.trim(),
                     link: item.querySelector('.hotspot-link').value.trim(),
@@ -802,7 +989,20 @@
             document.getElementById('reservationUrl').value = metadata.reservationUrl || '';
             document.getElementById('wellnessFocus').value = metadata.wellnessFocus || '';
             document.getElementById('consultationUrl').value = metadata.consultationUrl || '';
+            document.getElementById('weddingCapacity').value = metadata.weddingCapacity ?? '';
+            document.getElementById('weddingPriceRange').value = metadata.weddingPriceRange || '';
+            document.getElementById('weddingParkingSpaces').value = metadata.weddingParkingSpaces ?? '';
+            document.getElementById('weddingBookingUrl').value = metadata.weddingBookingUrl || '';
             setCheckedValues('hotelAmenities', metadata.amenities || []);
+            setCheckedValues('weddingAmenities', metadata.weddingAmenities || []);
+
+            const wProviders = Array.isArray(metadata.weddingProviders) ? metadata.weddingProviders : [];
+            document.getElementById('weddingProvidersList').innerHTML = '';
+            if (wProviders.length > 0) wProviders.forEach(addWeddingProvider); else addWeddingProvider();
+
+            const wPackages = Array.isArray(metadata.weddingPackages) ? metadata.weddingPackages : [];
+            document.getElementById('weddingPackagesList').innerHTML = '';
+            if (wPackages.length > 0) wPackages.forEach(addWeddingPackage); else addWeddingPackage();
 
             const hotspots = Array.isArray(metadata.hotspots) ? metadata.hotspots : [];
             document.getElementById('hotspotsList').innerHTML = '';

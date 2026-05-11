@@ -1,9 +1,13 @@
 package primespace.demo.controller;
 
+import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,23 +41,36 @@ public class ImageUploadController {
                     : ".jpg";
             String fileName = UUID.randomUUID() + ext;
 
-            String uploadUrl = supabaseUrl + "/storage/v1/object/" + BUCKET + "/" + fileName;
+            // Try Supabase upload first if key is configured
+            if (supabaseKey != null && !supabaseKey.isEmpty()) {
+                try {
+                    String uploadUrl = supabaseUrl + "/storage/v1/object/" + BUCKET + "/" + fileName;
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(uploadUrl))
-                    .header("Authorization", "Bearer " + supabaseKey)
-                    .header("Content-Type", file.getContentType() != null ? file.getContentType() : "image/jpeg")
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(file.getBytes()))
-                    .build();
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(uploadUrl))
+                            .header("Authorization", "Bearer " + supabaseKey)
+                            .header("Content-Type", file.getContentType() != null ? file.getContentType() : "image/jpeg")
+                            .POST(HttpRequest.BodyPublishers.ofByteArray(file.getBytes()))
+                            .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 200 || response.statusCode() == 201) {
-                String publicUrl = supabaseUrl + "/storage/v1/object/public/" + BUCKET + "/" + fileName;
-                return ResponseEntity.ok(Map.of("url", publicUrl));
-            } else {
-                return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + response.body()));
+                    if (response.statusCode() == 200 || response.statusCode() == 201) {
+                        String publicUrl = supabaseUrl + "/storage/v1/object/public/" + BUCKET + "/" + fileName;
+                        return ResponseEntity.ok(Map.of("url", publicUrl));
+                    }
+                } catch (Exception e) {
+                    // Fall through to local upload
+                }
             }
+
+            // Fallback: save locally to uploads/ directory
+            Path uploadsDir = Paths.get("uploads", "icons");
+            Files.createDirectories(uploadsDir);
+            Path filePath = uploadsDir.resolve(fileName);
+            file.transferTo(filePath.toFile());
+            String localUrl = "/api/uploads/icons/" + fileName;
+            return ResponseEntity.ok(Map.of("url", localUrl));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + e.getMessage()));
         }

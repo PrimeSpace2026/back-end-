@@ -52,11 +52,15 @@ public class CustomTagController {
                     tag.setMediaType(details.getMediaType());
                     tag.setMediaUrl(details.getMediaUrl());
                     tag.setIconUrl(details.getIconUrl());
+                    tag.setIconName(details.getIconName());
                     tag.setColor(details.getColor());
                     tag.setAnchorX(details.getAnchorX());
                     tag.setAnchorY(details.getAnchorY());
                     tag.setAnchorZ(details.getAnchorZ());
                     tag.setStemHeight(details.getStemHeight());
+                    tag.setStemDirX(details.getStemDirX());
+                    tag.setStemDirY(details.getStemDirY());
+                    tag.setStemDirZ(details.getStemDirZ());
                     tag.setFloorIndex(details.getFloorIndex());
                     tag.setEnabled(details.getEnabled());
                     return ResponseEntity.ok(customTagRepository.save(tag));
