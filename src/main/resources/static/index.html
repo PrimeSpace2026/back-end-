@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -51,42 +51,83 @@
         .empty-state p { font-size: 18px; margin-bottom: 20px; }
 
         /* Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: #fff; border-radius: 16px; padding: 32px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
-        .modal h2 { font-size: 24px; margin-bottom: 24px; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 14px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color .2s; background: #fff; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #6c5ce7; }
+        .modal { background: #f5f5f5; border-radius: 12px; padding: 0; width: 95%; max-width: 780px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        .modal-header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #e0e0e0; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 10; border-radius: 12px 12px 0 0; }
+        .modal-header h2 { font-size: 18px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a1a; }
+        .modal-header .close-btn { width: 32px; height: 32px; border-radius: 6px; border: none; background: #f0f0f0; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; color: #666; }
+        .modal-header .close-btn:hover { background: #e0e0e0; }
+        .modal-body { padding: 28px 32px 32px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; font-family: inherit; transition: border-color .2s, box-shadow .2s; background: #fff; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #4a9eff; box-shadow: 0 0 0 2px rgba(74,158,255,0.15); }
         .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-hint { display: block; margin-top: 6px; font-size: 12px; color: #777; }
-        .field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-        .dynamic-section { display: none; margin-bottom: 16px; padding: 16px; border: 1px solid #e8e4ff; border-radius: 12px; background: #f8f7ff; }
-        .dynamic-section.active { display: block; }
-        .dynamic-section h3 { font-size: 15px; font-weight: 700; color: #5546c9; margin-bottom: 12px; }
-        .checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-        .checkbox-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid #ddd; background: #fff; font-size: 13px; color: #444; }
-        .checkbox-pill input { width: auto; margin: 0; padding: 0; }
-        .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-        .hotspot-list { display: flex; flex-direction: column; gap: 10px; }
-        .hotspot-item { border: 1px dashed #d5d0f5; border-radius: 10px; background: #fff; padding: 12px; }
-        .service-item { border: 1px dashed #c5e8d5; border-radius: 10px; background: #f5fff8; padding: 12px; }
-        .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-        .toggle-row label { font-size: 13px; color: #555; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #6c5ce7; cursor: pointer; }
-        .service-badge { display: inline-flex; align-items: center; gap: 4px; background: #e8f5e9; color: #388e3c; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
-        .chamber-badge { display: inline-flex; align-items: center; gap: 4px; background: #e3f2fd; color: #1565c0; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
-        .services-row { display: flex; flex-wrap: wrap; margin-top: 8px; }
-        .chamber-item { border: 1px dashed #90caf9; border-radius: 10px; background: #f0f7ff; padding: 12px; }
+        .form-hint { display: block; margin-top: 4px; font-size: 11px; color: #888; }
+        .field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .field-row-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
-        .btn-cancel { background: #f0f0f0; color: #555; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
-        .btn-cancel:hover { background: #e0e0e0; }
+        /* Form Sections */
+        .form-section { margin-bottom: 24px; padding: 24px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; }
+        .form-section.section-purple { border-left: 4px solid #8b5cf6; }
+        .form-section.section-blue { border-left: 4px solid #3b82f6; }
+        .form-section.section-green { border-left: 4px solid #22c55e; }
+        .form-section.section-indigo { border-left: 4px solid #6366f1; }
+        .form-section.section-orange { border-left: 4px solid #f97316; }
+        .form-section.section-pink { border-left: 4px solid #ec4899; }
+        .form-section-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+        .form-section.section-purple .form-section-title { color: #6d28d9; }
+        .form-section.section-blue .form-section-title { color: #1d4ed8; }
+        .form-section.section-green .form-section-title { color: #15803d; }
+        .form-section.section-indigo .form-section-title { color: #4338ca; }
+        .form-section.section-orange .form-section-title { color: #c2410c; }
+        .form-section.section-pink .form-section-title { color: #be185d; }
+        .form-section-title .icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .form-section-title .icon-purple { background: #ede9fe; }
+        .form-section-title .icon-blue { background: #dbeafe; }
+        .form-section-title .icon-green { background: #dcfce7; }
+        .form-section-title .icon-orange { background: #ffedd5; }
+        .form-section-title .icon-pink { background: #fce7f3; }
+        .form-section-title .icon-indigo { background: #e0e7ff; }
+
+        .dynamic-section { display: none; margin-bottom: 24px; padding: 24px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; border-left: 4px solid #8b5cf6; }
+        .dynamic-section.active { display: block; }
+        .dynamic-section h3 { font-size: 15px; font-weight: 700; color: #4c1d95; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+        .checkbox-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .checkbox-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px; border: 1px solid #d0d0d0; background: #fff; font-size: 13px; color: #444; cursor: pointer; transition: all .2s; }
+        .checkbox-pill:has(input:checked) { border-color: #4a9eff; background: #eff6ff; color: #1d4ed8; font-weight: 500; }
+        .checkbox-pill input { width: auto; margin: 0; padding: 0; accent-color: #4a9eff; }
+        .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .hotspot-list { display: flex; flex-direction: column; gap: 12px; }
+        .hotspot-item { border: 1px solid #e0e0e0; border-radius: 8px; background: #fafafa; padding: 16px; transition: box-shadow .2s; }
+        .hotspot-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .service-item { border: 1px solid #d1e7dd; border-radius: 8px; background: #f8fdf9; padding: 16px; }
+        .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .toggle-row label { font-size: 13px; color: #555; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #4a9eff; cursor: pointer; }
+        .service-badge { display: inline-flex; align-items: center; gap: 4px; background: #d1e7dd; color: #0f5132; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
+        .chamber-badge { display: inline-flex; align-items: center; gap: 4px; background: #cfe2ff; color: #084298; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px; }
+        .services-row { display: flex; flex-wrap: wrap; margin-top: 8px; }
+        .chamber-item { border: 1px solid #b6d4fe; border-radius: 8px; background: #f8fbff; padding: 16px; }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+        .btn-cancel { background: #e0e0e0; color: #333; padding: 10px 22px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background .2s; text-transform: uppercase; letter-spacing: 0.3px; }
+        .btn-cancel:hover { background: #d0d0d0; }
+        .modal-header .header-actions { display: flex; gap: 8px; }
+        .modal-header .header-actions .btn-action { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; transition: opacity .2s; }
+        .modal-header .header-actions .btn-action:hover { opacity: 0.85; }
+        .modal-header .header-actions .btn-reset { background: #64b5f6; color: #fff; }
+        .modal-header .header-actions .btn-discard { background: #78909c; color: #fff; }
+        .modal-header .header-actions .btn-save { background: #42a5f5; color: #fff; }
 
         @media (max-width: 640px) {
-            .field-row { grid-template-columns: 1fr; }
-            .modal { padding: 20px; }
+            .field-row, .field-row-3 { grid-template-columns: 1fr; }
+            .modal { border-radius: 10px; }
+            .modal-body { padding: 16px; }
+            .modal-header { padding: 14px 16px; }
+            .modal-header .header-actions { gap: 4px; }
+            .modal-header .header-actions .btn-action { padding: 6px 10px; font-size: 10px; }
         }
 
         /* Toast */
@@ -127,37 +168,85 @@
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <h2 id="modalTitle">Ajouter une visite</h2>
+            <div class="modal-header">
+                <h2 id="modalTitle">Ajouter une visite</h2>
+                <div class="header-actions">
+                    <button type="button" class="btn-action btn-reset" onclick="document.getElementById('tourForm').reset(); resetDynamicFields();">RESET</button>
+                    <button type="button" class="btn-action btn-discard" onclick="closeModal()">ANNULER</button>
+                    <button type="button" class="btn-action btn-save" onclick="document.getElementById('tourForm').requestSubmit()">SAUVEGARDER</button>
+                </div>
+            </div>
+            <div class="modal-body">
             <form id="tourForm" onsubmit="handleSubmit(event)">
                 <input type="hidden" id="tourId">
-                <div class="form-group">
-                    <label for="name">Nom</label>
-                    <input type="text" id="name" placeholder="Ex: Clayton Hotel Belfast" required>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" placeholder="Description de la visite..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="category">Catégorie</label>
-                    <select id="category" required onchange="handleCategoryChange()">
-                        <option value="">Choisir une catégorie</option>
-                        <option value="Hôtellerie">Hôtellerie</option>
-                        <option value="Immobilier">Immobilier</option>
-                        <option value="Commerce">Commerce</option>
-                        <option value="Restaurant">Restaurant</option>
-                        <option value="Wellness">Wellness</option>
-                        <option value="Bureaux">Bureaux</option>
-                        <option value="Retail">Retail</option>
-                        <option value="Wedding venue">Wedding venue</option>
-                        <option value="Gym & Fitness">Gym & Fitness</option>
-                    </select>
-                    <small class="form-hint">Les champs ci-dessous s’adaptent automatiquement selon la catégorie choisie.</small>
+
+                <!-- Section 1: Infos Générales -->
+                <div class="form-section section-purple">
+                    <div class="form-section-title"><span class="icon icon-purple">📋</span> Informations Générales</div>
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="name">Nom de la visite</label>
+                            <input type="text" id="name" placeholder="Ex: Clayton Hotel Belfast" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Catégorie</label>
+                            <select id="category" required onchange="handleCategoryChange()">
+                                <option value="">Choisir une catégorie</option>
+                                <option value="Hôtellerie">Hôtellerie</option>
+                                <option value="Immobilier">Immobilier</option>
+                                <option value="Commerce">Commerce</option>
+                                <option value="Restaurant">Restaurant</option>
+                                <option value="Wellness">Wellness</option>
+                                <option value="Bureaux">Bureaux</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Wedding venue">Wedding venue</option>
+                                <option value="Gym &amp; Fitness">Gym &amp; Fitness</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" placeholder="Description de la visite..." required></textarea>
+                    </div>
                 </div>
 
-                <div id="hotelFields" class="dynamic-section">
-                    <h3>Informations Hôtellerie</h3>
+                <!-- Section 2: Média & Localisation -->
+                <div class="form-section section-blue">
+                    <div class="form-section-title"><span class="icon icon-blue">📍</span> Média & Localisation</div>
                     <div class="field-row">
+                        <div class="form-group">
+                            <label for="imageUrl">Image de couverture</label>
+                            <input type="url" id="imageUrl" placeholder="https://..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tourUrl">URL visite virtuelle</label>
+                            <input type="url" id="tourUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                    <div class="field-row-3">
+                        <div class="form-group">
+                            <label for="location">Emplacement</label>
+                            <input type="text" id="location" placeholder="Ex: Tunis, Lac 2">
+                        </div>
+                        <div class="form-group">
+                            <label for="latitude">Latitude</label>
+                            <input type="number" id="latitude" placeholder="36.8065" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="longitude">Longitude</label>
+                            <input type="number" id="longitude" placeholder="10.1815" step="any">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="surface">Surface (m²)</label>
+                        <input type="number" id="surface" placeholder="Ex: 2500" step="any" required>
+                    </div>
+                </div>
+
+                <!-- Section 3: Hôtellerie -->
+                <div id="hotelFields" class="dynamic-section">
+                    <h3>🏨 Informations Hôtellerie</h3>
+                    <div class="field-row-3">
                         <div class="form-group">
                             <label for="roomType">Type de chambre</label>
                             <input type="text" id="roomType" placeholder="Ex: Suite Deluxe">
@@ -171,16 +260,14 @@
                                 <option value="Twin">Twin</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="field-row">
                         <div class="form-group">
                             <label for="capacity">Capacité</label>
                             <input type="number" id="capacity" min="1" placeholder="Ex: 2">
                         </div>
-                        <div class="form-group">
-                            <label for="bookNowUrl">Lien “Réserver”</label>
-                            <input type="url" id="bookNowUrl" placeholder="https://...">
-                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookNowUrl">Lien "Réserver"</label>
+                        <input type="url" id="bookNowUrl" placeholder="https://...">
                     </div>
                     <div class="form-group">
                         <label>Équipements</label>
@@ -201,34 +288,9 @@
                     </div>
                 </div>
 
-                <!-- Services / Coaches Section (always visible) -->
-                <div id="servicesSection" style="margin-bottom: 16px; padding: 16px; border: 1px solid #c5e8d5; border-radius: 12px; background: #f5fff8;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #388e3c; margin-bottom: 12px;">Services & Coaches</h3>
-                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez des coachs ou services associés à cette visite. Ils apparaîtront en bas de la fiche.</small>
-                    <div class="form-group">
-                        <div class="section-head">
-                            <label>Liste des services</label>
-                            <button type="button" class="btn-sm btn-edit" onclick="addServiceEntry()">+ Ajouter</button>
-                        </div>
-                        <div id="servicesList" class="hotspot-list"></div>
-                    </div>
-                </div>
-
-                <!-- Chambers / Rooms Section (always visible) -->
-                <div id="chambersSection" style="margin-bottom: 16px; padding: 16px; border: 1px solid #90caf9; border-radius: 12px; background: #f0f7ff;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #1565c0; margin-bottom: 12px;">🛏️ Chambres</h3>
-                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez des chambres associées à cette visite. Elles apparaîtront en bas de la fiche.</small>
-                    <div class="form-group">
-                        <div class="section-head">
-                            <label>Liste des chambres</label>
-                            <button type="button" class="btn-sm btn-edit" onclick="addChamberEntry()">+ Ajouter</button>
-                        </div>
-                        <div id="chambersList" class="hotspot-list"></div>
-                    </div>
-                </div>
-
+                <!-- Section 3: Restaurant -->
                 <div id="restaurantFields" class="dynamic-section">
-                    <h3>Informations Restaurant</h3>
+                    <h3>🍽️ Informations Restaurant</h3>
                     <div class="field-row">
                         <div class="form-group">
                             <label for="cuisineType">Type de cuisine</label>
@@ -245,12 +307,13 @@
                     </div>
                 </div>
 
+                <!-- Section 3: Wellness -->
                 <div id="wellnessFields" class="dynamic-section">
-                    <h3>Informations Wellness</h3>
+                    <h3>🧘 Informations Wellness</h3>
                     <div class="field-row">
                         <div class="form-group">
                             <label for="wellnessFocus">Spécialité</label>
-                            <input type="text" id="wellnessFocus" placeholder="Ex: Spa & Beauty">
+                            <input type="text" id="wellnessFocus" placeholder="Ex: Spa &amp; Beauty">
                         </div>
                         <div class="form-group">
                             <label for="consultationUrl">Lien de réservation</label>
@@ -259,8 +322,9 @@
                     </div>
                 </div>
 
+                <!-- Section 3: Wedding -->
                 <div id="weddingFields" class="dynamic-section">
-                    <h3>Informations Wedding Venue</h3>
+                    <h3>💒 Informations Wedding Venue</h3>
                     <div class="field-row">
                         <div class="form-group">
                             <label for="weddingCapacity">Capacité (invités)</label>
@@ -312,42 +376,41 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="imageUrl">URL de l'image</label>
-                    <input type="url" id="imageUrl" placeholder="https://..." required>
-                </div>
-                <div class="form-group">
-                    <label for="surface">Surface (m²)</label>
-                    <input type="number" id="surface" placeholder="Ex: 2500" step="any" required>
-                </div>
-                <div class="form-group">
-                    <label for="tourUrl">URL de la visite virtuelle</label>
-                    <input type="url" id="tourUrl" placeholder="https://...">
+                <!-- Section 4: Services -->
+                <div class="form-section section-green" id="servicesSection">
+                    <div class="form-section-title"><span class="icon icon-green">🏷️</span> Services & Coaches</div>
+                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez des coachs ou services associés à cette visite.</small>
+                    <div class="form-group">
+                        <div class="section-head">
+                            <label>Liste des services</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addServiceEntry()">+ Ajouter</button>
+                        </div>
+                        <div id="servicesList" class="hotspot-list"></div>
+                    </div>
                 </div>
 
-                <div class="field-row">
+                <!-- Section 5: Chambres -->
+                <div class="form-section section-indigo" id="chambersSection">
+                    <div class="form-section-title"><span class="icon icon-indigo">🛏️</span> Chambres</div>
+                    <small class="form-hint" style="margin-bottom:12px;display:block;">Ajoutez les chambres associées à cette visite.</small>
                     <div class="form-group">
-                        <label for="latitude">Latitude</label>
-                        <input type="number" id="latitude" placeholder="36.8065" step="any">
-                    </div>
-                    <div class="form-group">
-                        <label for="longitude">Longitude</label>
-                        <input type="number" id="longitude" placeholder="10.1815" step="any">
+                        <div class="section-head">
+                            <label>Liste des chambres</label>
+                            <button type="button" class="btn-sm btn-edit" onclick="addChamberEntry()">+ Ajouter</button>
+                        </div>
+                        <div id="chambersList" class="hotspot-list"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="location">Emplacement</label>
-                    <input type="text" id="location" placeholder="Ex: Tunis, Lac 2">
-                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
-                    <button type="submit" class="btn-primary" id="submitBtn">Ajouter</button>
+                    <button type="submit" class="btn-primary" id="submitBtn" style="padding: 10px 24px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px;">Sauvegarder</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast"></div>
 
     <script>
@@ -410,6 +473,7 @@
                 latitude: document.getElementById('latitude').value ? parseFloat(document.getElementById('latitude').value) : null,
                 longitude: document.getElementById('longitude').value ? parseFloat(document.getElementById('longitude').value) : null,
                 location: document.getElementById('location').value.trim() || null,
+                bookNowUrl: document.getElementById('bookNowUrl').value.trim() || null,
                 metadataJson: JSON.stringify(buildMetadataPayload())
             };
 
@@ -538,6 +602,7 @@
                 document.getElementById('latitude').value = tour.latitude ?? '';
                 document.getElementById('longitude').value = tour.longitude ?? '';
                 document.getElementById('location').value = tour.location || '';
+                document.getElementById('bookNowUrl').value = tour.bookNowUrl || '';
 
                 const metadata = safeJsonParse(tour.metadataJson);
 
@@ -921,7 +986,6 @@
                 bedType: document.getElementById('bedType').value,
                 capacity: document.getElementById('capacity').value ? parseInt(document.getElementById('capacity').value, 10) : null,
                 amenities: getCheckedValues('hotelAmenities'),
-                bookNowUrl: document.getElementById('bookNowUrl').value.trim(),
                 cuisineType: document.getElementById('cuisineType').value.trim(),
                 menuUrl: document.getElementById('menuUrl').value.trim(),
                 reservationUrl: document.getElementById('reservationUrl').value.trim(),
@@ -983,7 +1047,6 @@
             document.getElementById('roomType').value = metadata.roomType || '';
             document.getElementById('bedType').value = metadata.bedType || '';
             document.getElementById('capacity').value = metadata.capacity ?? '';
-            document.getElementById('bookNowUrl').value = metadata.bookNowUrl || '';
             document.getElementById('cuisineType').value = metadata.cuisineType || '';
             document.getElementById('menuUrl').value = metadata.menuUrl || '';
             document.getElementById('reservationUrl').value = metadata.reservationUrl || '';
