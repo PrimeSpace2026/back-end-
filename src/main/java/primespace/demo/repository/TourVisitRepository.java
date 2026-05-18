@@ -23,8 +23,7 @@ public interface TourVisitRepository extends JpaRepository<TourVisit, Long> {
     List<Object[]> countVisitsPerTour();
 
     List<TourVisit> findAllByOrderByStartedAtDesc();
-        @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query("DELETE FROM TourVisit e WHERE e.tourId = :tourId")
     void deleteAllByTourId(@org.springframework.data.repository.query.Param("tourId") Long tourId);
 }
