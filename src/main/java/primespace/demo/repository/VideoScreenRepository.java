@@ -8,5 +8,8 @@ import primespace.demo.model.VideoScreen;
 
 public interface VideoScreenRepository extends JpaRepository<VideoScreen, Long> {
     List<VideoScreen> findByTourId(Long tourId);
-    void deleteAllByTourId(Long tourId);
+        @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM VideoScreen e WHERE e.tourId = :tourId")
+    void deleteAllByTourId(@org.springframework.data.repository.query.Param("tourId") Long tourId);
 }
