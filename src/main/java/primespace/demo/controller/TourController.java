@@ -124,23 +124,33 @@ public class TourController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteTour(@PathVariable Long id) {
-        return tourRepository.findById(id)
-                .map(tour -> {
-                    chamberRepository.deleteAllByTourId(id);
-                    customTagRepository.deleteByTourId(id);
-                    tourTagRepository.deleteByTourId(id);
-                    tourItemRepository.deleteAllByTourId(id);
-                    tourServiceRepository.deleteAllByTourId(id);
-                    tourGuideRepository.deleteAllByTourId(id);
-                    tourEventRepository.deleteAllByTourId(id);
-                    tourVisitRepository.deleteAllByTourId(id);
-                    videoScreenRepository.deleteAllByTourId(id);
-                    stagedObjectRepository.deleteAllByTourId(id);
-                    tourRepository.delete(tour);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> deleteTour(@PathVariable Long id) {
+        try {
+            return tourRepository.findById(id)
+                    .map(tour -> {
+                        try {
+                            chamberRepository.deleteAllByTourId(id);
+                            customTagRepository.deleteByTourId(id);
+                            tourTagRepository.deleteByTourId(id);
+                            tourItemRepository.deleteAllByTourId(id);
+                            tourServiceRepository.deleteAllByTourId(id);
+                            tourGuideRepository.deleteAllByTourId(id);
+                            tourEventRepository.deleteAllByTourId(id);
+                            tourVisitRepository.deleteAllByTourId(id);
+                            videoScreenRepository.deleteAllByTourId(id);
+                            stagedObjectRepository.deleteAllByTourId(id);
+                            tourRepository.delete(tour);
+                            return ResponseEntity.ok().build();
+                        } catch (Exception e) {
+                            log.error("deleteTour cascade failed for id={}", id, e);
+                            return ResponseEntity.status(500).body((Object) Map.of("error", e.getMessage()));
+                        }
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("deleteTour failed for id={}", id, e);
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/enabled")
