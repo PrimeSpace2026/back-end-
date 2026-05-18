@@ -307,6 +307,21 @@
                     </div>
                 </div>
 
+                <!-- Section 3: Immobilier -->
+                <div id="immobilierFields" class="dynamic-section">
+                    <h3>🏠 Informations Immobilier</h3>
+                    <div class="form-group">
+                        <label>Équipements</label>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-pill"><input type="checkbox" name="immobilierAmenities" value="Piscine"> Piscine</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="immobilierAmenities" value="Terrasse"> Terrasse</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="immobilierAmenities" value="Parking"> Parking</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="immobilierAmenities" value="Cuisine"> Cuisine</label>
+                            <label class="checkbox-pill"><input type="checkbox" name="immobilierAmenities" value="Toilette"> Toilette</label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Section 3: Wellness -->
                 <div id="wellnessFields" class="dynamic-section">
                     <h3>🧘 Informations Wellness</h3>
@@ -688,6 +703,8 @@
 
             if (normalized === 'hotellerie' || normalized === 'hotel') {
                 document.getElementById('hotelFields').classList.add('active');
+            } else if (normalized === 'immobilier') {
+                document.getElementById('immobilierFields').classList.add('active');
             } else if (normalized === 'restaurant') {
                 document.getElementById('restaurantFields').classList.add('active');
             } else if (normalized === 'wellness' || normalized === 'bien-etre' || normalized === 'bien etre') {
@@ -968,6 +985,7 @@
             document.getElementById('weddingParkingSpaces').value = '';
             document.getElementById('weddingBookingUrl').value = '';
             setCheckedValues('hotelAmenities', []);
+            setCheckedValues('immobilierAmenities', []);
             setCheckedValues('weddingAmenities', []);
             document.getElementById('weddingProvidersList').innerHTML = '';
             document.getElementById('weddingPackagesList').innerHTML = '';
@@ -986,6 +1004,7 @@
                 bedType: document.getElementById('bedType').value,
                 capacity: document.getElementById('capacity').value ? parseInt(document.getElementById('capacity').value, 10) : null,
                 amenities: getCheckedValues('hotelAmenities'),
+                immobilierAmenities: getCheckedValues('immobilierAmenities'),
                 cuisineType: document.getElementById('cuisineType').value.trim(),
                 menuUrl: document.getElementById('menuUrl').value.trim(),
                 reservationUrl: document.getElementById('reservationUrl').value.trim(),
@@ -1057,6 +1076,7 @@
             document.getElementById('weddingParkingSpaces').value = metadata.weddingParkingSpaces ?? '';
             document.getElementById('weddingBookingUrl').value = metadata.weddingBookingUrl || '';
             setCheckedValues('hotelAmenities', metadata.amenities || []);
+            setCheckedValues('immobilierAmenities', metadata.immobilierAmenities || []);
             setCheckedValues('weddingAmenities', metadata.weddingAmenities || []);
 
             const wProviders = Array.isArray(metadata.weddingProviders) ? metadata.weddingProviders : [];
