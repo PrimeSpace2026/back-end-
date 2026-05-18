@@ -8,4 +8,5 @@ import primespace.demo.model.StagedObject;
 
 public interface StagedObjectRepository extends JpaRepository<StagedObject, Long> {
     List<StagedObject> findByTourId(Long tourId);
+    void deleteAllByTourId(Long tourId);
 }

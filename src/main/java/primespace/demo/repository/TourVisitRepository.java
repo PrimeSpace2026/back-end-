@@ -23,4 +23,5 @@ public interface TourVisitRepository extends JpaRepository<TourVisit, Long> {
     List<Object[]> countVisitsPerTour();
 
     List<TourVisit> findAllByOrderByStartedAtDesc();
+    void deleteAllByTourId(Long tourId);
 }

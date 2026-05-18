@@ -8,4 +8,5 @@ import primespace.demo.model.VideoScreen;
 
 public interface VideoScreenRepository extends JpaRepository<VideoScreen, Long> {
     List<VideoScreen> findByTourId(Long tourId);
+    void deleteAllByTourId(Long tourId);
 }

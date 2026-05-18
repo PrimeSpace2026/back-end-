@@ -5,6 +5,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +16,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import primespace.demo.model.Tour;
+import primespace.demo.repository.ChamberRepository;
+import primespace.demo.repository.CustomTagRepository;
+import primespace.demo.repository.StagedObjectRepository;
+import primespace.demo.repository.TourEventRepository;
+import primespace.demo.repository.TourGuideRepository;
+import primespace.demo.repository.TourItemRepository;
 import primespace.demo.repository.TourRepository;
+import primespace.demo.repository.TourServiceRepository;
+import primespace.demo.repository.TourTagRepository;
+import primespace.demo.repository.TourVisitRepository;
+import primespace.demo.repository.VideoScreenRepository;
 
 @RestController
 @RequestMapping("/api/tours")
@@ -24,9 +35,34 @@ public class TourController {
     private static final Logger log = LoggerFactory.getLogger(TourController.class);
 
     private final TourRepository tourRepository;
+    private final ChamberRepository chamberRepository;
+    private final CustomTagRepository customTagRepository;
+    private final TourItemRepository tourItemRepository;
+    private final TourServiceRepository tourServiceRepository;
+    private final TourGuideRepository tourGuideRepository;
+    private final TourEventRepository tourEventRepository;
+    private final TourVisitRepository tourVisitRepository;
+    private final TourTagRepository tourTagRepository;
+    private final VideoScreenRepository videoScreenRepository;
+    private final StagedObjectRepository stagedObjectRepository;
 
-    public TourController(TourRepository tourRepository) {
+    public TourController(TourRepository tourRepository, ChamberRepository chamberRepository,
+                          CustomTagRepository customTagRepository, TourItemRepository tourItemRepository,
+                          TourServiceRepository tourServiceRepository, TourGuideRepository tourGuideRepository,
+                          TourEventRepository tourEventRepository, TourVisitRepository tourVisitRepository,
+                          TourTagRepository tourTagRepository, VideoScreenRepository videoScreenRepository,
+                          StagedObjectRepository stagedObjectRepository) {
         this.tourRepository = tourRepository;
+        this.chamberRepository = chamberRepository;
+        this.customTagRepository = customTagRepository;
+        this.tourItemRepository = tourItemRepository;
+        this.tourServiceRepository = tourServiceRepository;
+        this.tourGuideRepository = tourGuideRepository;
+        this.tourEventRepository = tourEventRepository;
+        this.tourVisitRepository = tourVisitRepository;
+        this.tourTagRepository = tourTagRepository;
+        this.videoScreenRepository = videoScreenRepository;
+        this.stagedObjectRepository = stagedObjectRepository;
     }
 
     @GetMapping
@@ -87,9 +123,20 @@ public class TourController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<Void> deleteTour(@PathVariable Long id) {
         return tourRepository.findById(id)
                 .map(tour -> {
+                    chamberRepository.deleteAllByTourId(id);
+                    customTagRepository.deleteByTourId(id);
+                    tourTagRepository.deleteByTourId(id);
+                    tourItemRepository.deleteAllByTourId(id);
+                    tourServiceRepository.deleteAllByTourId(id);
+                    tourGuideRepository.deleteAllByTourId(id);
+                    tourEventRepository.deleteAllByTourId(id);
+                    tourVisitRepository.deleteAllByTourId(id);
+                    videoScreenRepository.deleteAllByTourId(id);
+                    stagedObjectRepository.deleteAllByTourId(id);
                     tourRepository.delete(tour);
                     return ResponseEntity.ok().<Void>build();
                 })

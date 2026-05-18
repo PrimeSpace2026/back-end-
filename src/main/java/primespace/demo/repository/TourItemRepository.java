@@ -8,4 +8,5 @@ import primespace.demo.model.TourItem;
 
 public interface TourItemRepository extends JpaRepository<TourItem, Long> {
     List<TourItem> findByTourId(Long tourId);
+    void deleteAllByTourId(Long tourId);
 }

@@ -26,4 +26,5 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
     @Query("SELECT COUNT(DISTINCT e.visitorId) FROM TourEvent e WHERE e.eventType = :eventType")
     long countUniqueVisitorsByEventType(String eventType);
+    void deleteAllByTourId(Long tourId);
 }
