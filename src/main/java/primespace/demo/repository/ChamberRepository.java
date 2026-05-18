@@ -8,4 +8,5 @@ import primespace.demo.model.Chamber;
 
 public interface ChamberRepository extends JpaRepository<Chamber, Long> {
     List<Chamber> findByTourId(Long tourId);
+    void deleteAllByTourId(Long tourId);
 }

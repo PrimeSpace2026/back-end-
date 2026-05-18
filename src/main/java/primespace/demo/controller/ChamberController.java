@@ -1,6 +1,9 @@
 package primespace.demo.controller;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,8 +52,6 @@ public class ChamberController {
                     ch.setCurrency(details.getCurrency());
                     ch.setTagSid(details.getTagSid());
                     ch.setCoordinates(details.getCoordinates());
-                    ch.setBookingUrl(details.getBookingUrl());
-                    ch.setBookingEnabled(details.getBookingEnabled());
                     return ResponseEntity.ok(chamberRepository.save(ch));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -65,5 +66,22 @@ public class ChamberController {
                     return ResponseEntity.ok().<Void>build();
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/deduplicate")
+    public ResponseEntity<String> deduplicateChambers(@PathVariable Long tourId) {
+        List<Chamber> all = chamberRepository.findByTourId(tourId);
+        Set<String> seen = new HashSet<>();
+        List<Chamber> toDelete = new ArrayList<>();
+        for (Chamber ch : all) {
+            String key = (ch.getName() != null ? ch.getName() : "") + "|" + (ch.getTagSid() != null ? ch.getTagSid() : "");
+            if (seen.contains(key)) {
+                toDelete.add(ch);
+            } else {
+                seen.add(key);
+            }
+        }
+        chamberRepository.deleteAll(toDelete);
+        return ResponseEntity.ok("Removed " + toDelete.size() + " duplicates");
     }
 }
