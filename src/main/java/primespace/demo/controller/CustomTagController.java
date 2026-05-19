@@ -63,6 +63,8 @@ public class CustomTagController {
                     tag.setStemDirZ(details.getStemDirZ());
                     tag.setFloorIndex(details.getFloorIndex());
                     tag.setEnabled(details.getEnabled());
+                    tag.setCameraYaw(details.getCameraYaw());
+                    tag.setCameraPitch(details.getCameraPitch());
                     return ResponseEntity.ok(customTagRepository.save(tag));
                 })
                 .orElse(ResponseEntity.notFound().build());

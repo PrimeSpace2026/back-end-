@@ -74,6 +74,12 @@ public class CustomTag {
 
     private Boolean enabled;
 
+    @Column(name = "camera_yaw")
+    private Double cameraYaw;
+
+    @Column(name = "camera_pitch")
+    private Double cameraPitch;
+
     public CustomTag() {}
 
     // Getters and setters
@@ -133,4 +139,10 @@ public class CustomTag {
 
     public Boolean getEnabled() { return enabled; }
     public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+
+    public Double getCameraYaw() { return cameraYaw; }
+    public void setCameraYaw(Double cameraYaw) { this.cameraYaw = cameraYaw; }
+
+    public Double getCameraPitch() { return cameraPitch; }
+    public void setCameraPitch(Double cameraPitch) { this.cameraPitch = cameraPitch; }
 }
