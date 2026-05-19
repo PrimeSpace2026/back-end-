@@ -185,6 +185,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS stem_dir_y DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS stem_dir_z DOUBLE PRECISION"); } catch (Exception ignored) {}
         try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS icon_name VARCHAR(100)"); } catch (Exception ignored) {}
+        // Camera view per tag
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS camera_yaw DOUBLE PRECISION"); } catch (Exception ignored) {}
+        try { jdbcTemplate.execute("ALTER TABLE custom_tag ADD COLUMN IF NOT EXISTS camera_pitch DOUBLE PRECISION"); } catch (Exception ignored) {}
 
         // Custom tags (admin-placed tags with media)
         jdbcTemplate.execute("""
