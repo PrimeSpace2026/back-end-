@@ -22,35 +22,32 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 500)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 1000)
     private String description;
 
-    @Column(length = 200)
     private String category;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String imageUrl;
 
     private Double surface;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 2000)
     private String tourUrl;
 
     private Double latitude;
 
     private Double longitude;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 500)
     private String location;
 
     @Column(name = "metadata_json", columnDefinition = "TEXT")
     private String metadataJson;
 
-    @Column(nullable = false)
-    private Boolean enabled = true;
+    private Boolean enabled;
 
     @Column(name = "book_now_url", length = 2000)
     private String bookNowUrl;
@@ -81,10 +78,6 @@ public class Tour {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Chamber> chambers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<VideoScreen> videoScreens = new ArrayList<>();
 
     public Tour() {
     }
